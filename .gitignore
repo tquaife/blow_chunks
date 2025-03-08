@@ -1,0 +1,6 @@
+blow_chunks
+*.o
+*~
+*.wav
+**/*.wav
+
