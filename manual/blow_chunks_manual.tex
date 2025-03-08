@@ -1,0 +1,262 @@
+\documentclass[11pt,a4paper,oldfontcommands]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage[dvips]{graphicx}
+\usepackage{xcolor}
+\usepackage{times}
+\usepackage{listings}
+
+\newcommand{\blowchunks}{\texttt{blow\_chunks }}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+%  language=bash,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+
+
+
+\usepackage[
+breaklinks=true,colorlinks=true,
+%linkcolor=blue,urlcolor=blue,citecolor=blue,% PDF VIEW
+linkcolor=black,urlcolor=black,citecolor=black,% PRINT
+bookmarks=true,bookmarksopenlevel=2]{hyperref}
+
+\usepackage{geometry}
+% PDF VIEW
+% \geometry{total={210mm,297mm},
+% left=25mm,right=25mm,%
+% bindingoffset=0mm, top=25mm,bottom=25mm}
+% PRINT
+\geometry{total={210mm,297mm},
+left=20mm,right=20mm,
+bindingoffset=10mm, top=25mm,bottom=25mm}
+
+\OnehalfSpacing
+%\linespread{1.3}
+
+%%% CHAPTER'S STYLE
+\chapterstyle{bianchi}
+%\chapterstyle{ger}
+%\chapterstyle{madsen}
+%\chapterstyle{ell}
+%%% STYLE OF SECTIONS, SUBSECTIONS, AND SUBSUBSECTIONS
+\setsecheadstyle{\Large\bfseries\sffamily\raggedright}
+\setsubsecheadstyle{\large\bfseries\sffamily\raggedright}
+\setsubsubsecheadstyle{\bfseries\sffamily\raggedright}
+
+
+%%% STYLE OF PAGES NUMBERING
+%\pagestyle{companion}\nouppercaseheads 
+%\pagestyle{headings}
+%\pagestyle{Ruled}
+\pagestyle{plain}
+\makepagestyle{plain}
+\makeevenfoot{plain}{\thepage}{}{}
+\makeoddfoot{plain}{}{}{\thepage}
+\makeevenhead{plain}{}{}{}
+\makeoddhead{plain}{}{}{}
+
+
+\maxsecnumdepth{subsection} % chapters, sections, and subsections are numbered
+\maxtocdepth{subsection} % chapters, sections, and subsections are in the Table of Contents
+
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+
+\begin{document}
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+%   TITLEPAGE
+%
+%   due to variety of titlepage schemes it is probably better to make titlepage manually
+%
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+\thispagestyle{empty}
+
+{%%%
+\sffamily
+\centering
+\Large
+
+~\vspace{\fill}
+
+{\huge 
+\texttt{blow\_chunks} 
+}
+
+{\LARGE
+user manual
+}
+
+
+\vspace{2.5cm}
+
+{\LARGE
+Tristan Quaife
+}
+
+\vspace{3.5cm}
+
+
+\vspace{\fill}
+
+\today
+
+%%%
+}%%%
+
+\cleardoublepage
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+
+\tableofcontents*
+
+\clearpage
+
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%---%%%
+
+\chapter{Quick start}
+
+\section{Getting the code}
+
+You can download the code from \texttt{https://github.com/tquaife/blow\_chunks} or, better, use \texttt{git} to check out the repository:
+
+\begin{lstlisting}
+git checkout https://github.com/tquaife/blow_chunks
+\end{lstlisting}
+
+\section{Compilation}
+
+\blowchunks has no external dependencies so, assuming you have a C compiler and \texttt{make} installed, it should be as easy as opening a terminal, changing directory to the location of the source code and typing:
+
+\begin{lstlisting}
+make
+\end{lstlisting}
+
+\noindent
+If you don't have these tools, search for how to install C development tools for your system.
+
+\section{A first sound}
+
+\blowchunks reads ascii text from the standard input and writes wav files to the standard output. A very simple example of this is as follows. Open the terminal and type:
+
+\begin{lstlisting}
+echo sin 220 1 1|./blow_chunks > a.wav
+\end{lstlisting}
+
+\noindent
+This command produces a one second sample of the note A at 220Hz using a sine wave oscillator. On most linux systems, you can listen to the sound by typing:
+
+\begin{lstlisting}
+open a.wav
+\end{lstlisting}
+
+\noindent
+which will use your default media player to play the wav file. Alternatively, if you have \texttt{SoX} installed, you can use the \texttt{play} command:
+
+\begin{lstlisting}
+play a.wav
+\end{lstlisting}
+
+
+
+\noindent
+You can also use \texttt{play} to directly preview the sound without writing to a file:
+
+\begin{lstlisting}
+echo sin 220 1 1|./blow_chunks|play -
+\end{lstlisting}
+
+
+\section{Basic \blowchunks instructions}
+
+What's going on in the command described in the previous section? The command being passed to \blowchunks is ``\texttt{sin 220 1 1}'', 
+which is an example of a oscillator, the main building block of sounds in \blowchunks. Most oscillator commands look something like:
+
+\begin{lstlisting}
+oscillator_name frequency phase volume
+\end{lstlisting}
+
+\noindent
+The different oscillatosr are described later in this document, but valid examples include \texttt{sin}, \texttt{sqr} and \texttt{tri} which are a sine wave, a square wave and a triangular wave, respectively. They all take the same arguments. The \texttt{frequency} argument controls the pitch, \texttt{phase} controls the phase (but will not have a noticeable effect in these simple examples) and volume controls the volume of the sound. All of these arguments can take on any floating point value, including negative numbers, but typically \texttt{frequency} is a value above 0.0Hz and less than 22000.0Hz, and \texttt{phase} and \texttt{volume} will have values between 0.0 and 1.0.
+
+
+\section{Modulating modulators}
+
+A key concept in \blowchunks is that the arguments to oscillators (i.e. the numbers following the name of the oscillator) can be replaced with more oscillators, which we refer to as modulators. This is done by following the numeric argument with curly brackets and specifying a new oscillator inside the brackets. This allows \blowchunks to implement a variety of synthesis techniques, such as FM (or ``frequency modulation'') synthesis. For example, we can modify our original example as follows:
+
+\begin{lstlisting}
+echo sin 220 {sin 220 1 1} 1 1|./blow_chunks >afm220.wav
+\end{lstlisting}
+
+\noindent
+Here, the frequency of our original oscillator is being modulated at its original frequency. Listen to the resulting sound. Basic FM synthesis is often described as making the original waveform sound ``brighter'' and was the foundation of many synths of the 1980's. Of course you don't need to modulate the frequency by itself, you can also try out other frequencies, potentially triggering all sorts of side-harmonics, some of which are less pleasing to the ear than others:
+
+\begin{lstlisting}
+echo sin 220 {sin 356 1 1} 1 1|./blow_chunks >afm356.wav
+\end{lstlisting}
+
+\noindent
+It is possible to keep nesting modulators indefinitely, at least within the constraints of your computer's memory, which will be a \emph{lot} of modulators on modern computers. In the following example, we will use a low-frequency triangular-wave oscillator to modulate the amplitude of the FM effect. Not that there's nothing special about an oscillator that makes it ``low frequency''; it is just a standard \blowchunks oscillator with a pitch that is below our hearing range. In this example, we will use a frequency of 1Hz:
+
+\begin{lstlisting}
+echo sin 220 {sin 356 1 1{tri 1 1 1}} 1 1|./blow_chunks >afm356_fade.wav
+\end{lstlisting}
+
+\noindent
+N.B. The above should all be typed on one line.
+
+\noindent
+Have a listen and convince yourself of how the above command is being used to generate dynamics in the sound. Also note how quickly we have been able to build up something that is interesting. At this stage, it is worth having a go at adding modulators into the above sound and experimenting with the different effects.
+
+\section{Basic sound duration control}
+
+At this point, you may want to make sounds be a bit longer than one second, so you can explore the effects of different low frequency modulators. For basic sounds, this can be controlled using the optional argument \texttt{-d} to \blowchunks. This creates the previous sound for 2.5 seconds we can do the following:
+
+\begin{lstlisting}
+echo sin 220 {sin 356 1 1{tri 1 1 1}} 1 1|./blow_chunks -d 2.5 > afm356_fade_2p5s.wav
+\end{lstlisting}
+
+
+\section{Additive synthesis and working with files}
+
+A well as providing a flexible modulation framework, \blowchunks allows multiple waveforms to be added together to make more complex sounds. However, it becomes cumbersome to do this using the command line, so it is better to write the instructions to a text file. Open a text editor and create a file called \texttt{cmajor.txt} with the following contents:
+
+\begin{lstlisting}
+;a C major chord
+sn3 261.6 1 1
+sn3 329.6 1 1
+sn3 392.0 1 1
+\end{lstlisting}
+
+\noindent
+We can now generate the corresponding wav file as follows:
+
+\begin{lstlisting}
+./blow_chunks -d 2.5 < cmajor.txt > cmajor.wav
+\end{lstlisting}
+
+
+\noindent
+Note that \blowchunks supports comments. Anything after a ``;'' character until the end of the line is ignored. This is useful for leaving notes explaining what different parts of your file are doing. Blank lines are also ignored, which can be helpful for clearly separating different blocks of instructions. The \texttt{sn3} oscillator is described later, but produces a more satisfying result than \texttt{sin} in this example.
+
+\end{document}

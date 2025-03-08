@@ -4,3 +4,9 @@ blow_chunks
 *.wav
 **/*.wav
 
+**/*.toc
+**/*.log
+**/*.out
+**/*.aux
+**/*.dvi
+
