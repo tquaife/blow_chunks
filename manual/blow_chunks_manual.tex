@@ -197,7 +197,7 @@ oscillator_name frequency phase volume
 \end{lstlisting}
 
 \noindent
-The different oscillatosr are described later in this document, but valid examples include \texttt{sin}, \texttt{sqr} and \texttt{tri} which are a sine wave, a square wave and a triangular wave, respectively. They all take the same arguments. The \texttt{frequency} argument controls the pitch, \texttt{phase} controls the phase (but will not have a noticeable effect in these simple examples) and volume controls the volume of the sound. All of these arguments can take on any floating point value, including negative numbers, but typically \texttt{frequency} is a value above 0.0Hz and less than 22000.0Hz, and \texttt{phase} and \texttt{volume} will have values between 0.0 and 1.0.
+The different oscillators are described later in this document, but valid examples include \texttt{sin}, \texttt{sqr} and \texttt{tri} which are a sine wave, a square wave and a triangular wave, respectively. They all take the same arguments. The \texttt{frequency} argument controls the pitch, \texttt{phase} controls the phase (but will not have a noticeable effect in these simple examples) and volume controls the volume of the sound. All of these arguments can take on any floating point value, including negative numbers, but typically \texttt{frequency} is a value above 0.0Hz and less than 22000.0Hz, and \texttt{phase} and \texttt{volume} will have values between 0.0 and 1.0.
 
 
 \section{Modulating modulators}
@@ -230,7 +230,7 @@ Have a listen and convince yourself of how the above command is being used to ge
 
 \section{Basic sound duration control}
 
-At this point, you may want to make sounds be a bit longer than one second, so you can explore the effects of different low frequency modulators. For basic sounds, this can be controlled using the optional argument \texttt{-d} to \blowchunks. This creates the previous sound for 2.5 seconds we can do the following:
+At this point, you may want to make sounds be a bit longer than one second, so you can explore the effects of different low frequency modulators (LFOs). For basic sounds, this can be controlled using the optional argument \texttt{-d} to \blowchunks. This creates the previous sound for 2.5 seconds we can do the following:
 
 \begin{lstlisting}
 echo sin 220 {sin 356 1 1{tri 1 1 1}} 1 1|./blow_chunks -d 2.5 > afm356_fade_2p5s.wav
@@ -258,5 +258,34 @@ We can now generate the corresponding wav file as follows:
 
 \noindent
 Note that \blowchunks supports comments. Anything after a ``;'' character until the end of the line is ignored. This is useful for leaving notes explaining what different parts of your file are doing. Blank lines are also ignored, which can be helpful for clearly separating different blocks of instructions. The \texttt{sn3} oscillator is described later, but produces a more satisfying result than \texttt{sin} in this example.
+
+\section{Stereo}
+
+Top level oscillators, i.e. those not enclosed in curly brackets ``\{\}'' can posses more than one volume value. By specifying two volume values the resulting sound file is in stereo (the resulting wav file will have two \emph{channels}). Note that all top level oscillators must have the same number of volume values or \blowchunks will throw an error and exit. Similarly, all oscillators being used as modulators can only have a single volume value. In principle \blowchunks supports an arbitrary number of channels, so it is possible to create quadraphonic sounds etc, but you will only hear these effects if you have an audio set up that can play them.
+
+The simplest example if to pan a sound to one channel:
+
+\begin{lstlisting}
+;C panned hard left
+sn3 261.6 1 1 0
+\end{lstlisting}
+
+By modulating the volume channels it's possible to generate effects in stereo. In the following example a sin wave, with two channels, has the volume of each channel modulated by a low frequency sine oscillator with a phase difference of $180^\circ$:
+
+\begin{lstlisting}
+;A sweeping from right to left
+sin 220 1 1 {sin 1 1 1} 1 {sin 1 0.5 1}
+\end{lstlisting}
+
+It's also possible to use LFO modulated channels to create arpeggiators. A good choice of LFO for this pupose is the smoothed square wave modulator \texttt{sqx}. The following example is a stereo arpeggiated C major chord:
+
+\begin{lstlisting}
+;C major stereo arpeggiator
+;suggest generating at least 6 second sample
+sn3 261.6 1 1 {sqx 1 0 1} 1 {sqx 1 0.5 1}
+sn3 329.6 1 1 {sqx 1 0.16 1} 1 {sqx 1 0.67 1}
+sn3 392.0 1 1 {sqx 1 0.33 1} 1 {sqx 1 0.83 1}
+\end{lstlisting}
+
 
 \end{document}
