@@ -492,3 +492,20 @@ char is_string_blank( char *s )
 
 }
 
+
+
+int subsitute_variables( char *s )
+{
+
+    int n_subs=0;
+    char pad_these[]="{}";
+
+    while( *pad_these != '\0' )
+        pad_char_in_str_with_char( s, *pad_these, ' ', MAX_LINE_LEN-100 );
+
+
+    return n_subs ;
+}
+
+
+
