@@ -1,4 +1,32 @@
 #include<chunky.h>
+#include<note_lookup.h>
+
+/*
+Build the initial variable list of notes names and values
+from the  note_lookup  header file
+*/
+struct variable_node *build_variable_list(  )
+{
+    struct variable_node *var_node;
+    struct variable_node *top_node;
+    size_t num_vars = sizeof(note_lookup) / sizeof(NOTE);
+
+    var_node=vnalloc();
+    top_node=var_node;
+        
+    for (size_t i=0; i<num_vars; i++) {
+        if(i>0){
+            var_node->next=vnalloc();
+            var_node=var_node->next;
+            var_node->next=NULL;
+        }
+        var_node->key=note_lookup[i].key;
+        var_node->value=note_lookup[i].value;
+    }
+
+    return top_node;
+}
+
 
 /*
 A recursive function which reads the data in line by line.
@@ -24,6 +52,11 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     struct wave_node *node ;    
     node = NULL ;
 
+    struct variable_node *var_node ;
+    var_node = NULL ;
+    var_node=build_variable_list(  );
+        
+        
     while( fgets( line, MAX_LINE_LEN, stdin ) != NULL ){
     
         *nlines++;
@@ -32,6 +65,9 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         strip_comments( line, ';' );
         if( is_string_blank( line ) ) continue;
       
+        /*substitute variables*/
+        substitute_variables( line, var_node );
+        //fprintf(stderr,"%s\n",line);
         
         /*=============================================================
         Start with an initial parse of each line to check the number of  
@@ -117,6 +153,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     long      i, counter=0;
 
     struct ampl_node *a_node ;
+
 
     /*
     Perform a couple of checks of the string that has been passed
@@ -375,6 +412,13 @@ struct wave_node *wnalloc( void )
 struct ampl_node *analloc( void )
 {
     return ( struct ampl_node *) malloc( sizeof( struct ampl_node ) ) ; 
+}
+
+
+/*Allocate memory for an variable node*/
+struct variable_node *vnalloc( void )
+{
+    return ( struct variable_node *) malloc( sizeof( struct variable_node ) ) ; 
 }
 
 

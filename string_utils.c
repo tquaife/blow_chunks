@@ -467,11 +467,9 @@ char    *element;
     
     /* Copy remainder of line into the beggining */
     /* of itself */
-    
+ 
     for( j=0; ( *(line+j)=*(line+i) ) != '\0' ; ++j, ++i );
-    
-    
-    
+        
     return( 1 );
 
 }
@@ -494,18 +492,46 @@ char is_string_blank( char *s )
 
 
 
-int subsitute_variables( char *s )
+int substitute_variables( char *s,  struct variable_node *var_node )
 {
 
-    int n_subs=0;
-    char pad_these[]="{}";
+    int n_subs=0, i=0, j=0, k=0;
+    char *var_value;
+    char *s_orig=s;
+    char var_name[ MAX_LINE_LEN ];
+    char new_s[ MAX_LINE_LEN ];
 
-    while( *pad_these != '\0' )
-        pad_char_in_str_with_char( s, *pad_these, ' ', MAX_LINE_LEN-100 );
 
+    while( *s != '\0' ){
+        new_s[j++]=*s++;
+        if( *s== '$' ){
+            while( isalnum( *++s ) )
+                var_name[i++]=*s;
+            var_name[i]='\0';
+            i=0;
+            var_value=get_var_value( var_name, var_node );
+            if( var_value==NULL){
+                fprintf(stderr,"exiting: undefined variable: %s\n", var_name);
+                exit(1);
+            }
+            while( var_value[k] != '\0')
+                new_s[j++]=var_value[k++];
+            k=0;
+        }
+    }      
 
+    strcpy(s_orig,new_s);
     return n_subs ;
 }
 
+
+char * get_var_value( char *key,  struct variable_node *var_node ){    
+    while( var_node!=NULL ){
+        if (strcmp(var_node->key, key) == 0) 
+            return var_node->value;
+        var_node=var_node->next;
+    }
+    return NULL;
+}
 
 
