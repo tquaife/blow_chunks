@@ -467,11 +467,9 @@ char    *element;
     
     /* Copy remainder of line into the beggining */
     /* of itself */
-    
+ 
     for( j=0; ( *(line+j)=*(line+i) ) != '\0' ; ++j, ++i );
-    
-    
-    
+        
     return( 1 );
 
 }
@@ -491,4 +489,124 @@ char is_string_blank( char *s )
     return 1 ;
 
 }
+
+
+
+int substitute_variables( char *s,  struct variable_node *var_node )
+{
+
+    int n_subs=0, i=0, j=0, k=0;
+    char *var_value;
+    char *s_orig=s;
+    char var_name[ MAX_LINE_LEN ];
+    char new_s[ MAX_LINE_LEN ];
+
+    while( *s!='\0' ){
+        if( *s=='$' ){
+            while( isalnum( *++s ) )
+                var_name[i++]=*s;
+            
+            var_name[i]='\0';
+            n_subs++;
+            i=0;
+            var_value=get_var_value( var_name, var_node );
+            if( var_value==NULL){
+                fprintf(stderr,"exiting: undefined variable: %s\n", var_name);
+                exit(1);
+            }
+            while( var_value[k] != '\0')
+                new_s[j++]=var_value[k++];
+            k=0;
+        }else{
+            new_s[j++]=*s++;
+        }
+    }      
+    new_s[j]='\0';
+    strcpy(s_orig,new_s);
+    return n_subs ;
+}
+
+
+char * get_var_value( char *key,  struct variable_node *var_node ){    
+    while( var_node!=NULL ){
+        if (strcmp(var_node->key, key) == 0) 
+            return var_node->value;
+        var_node=var_node->next;
+    }
+    return NULL;
+}
+
+
+void print_var_table( struct variable_node *var_node ){    
+    while( var_node!=NULL ){
+        fprintf(stderr,"%s %s\n",var_node->key,var_node->value);
+        var_node=var_node->next;
+    }
+}
+
+
+
+int assign_variables( char *string,  struct variable_node *var_node )
+{
+
+    char token1[ MAX_LINE_LEN ];
+    char token2[ MAX_LINE_LEN ];
+    char tmp[ MAX_LINE_LEN ];
+    int  i, k;
+    
+    struct variable_node *last_node;
+        
+    pad_char_in_str_with_char( string, '=', ' ', MAX_LINE_LEN-100 );
+    
+    if( get_first_string_element( string, token1 )==0 ) return 0;
+    if( get_first_string_element( string, token2 )==0 ) return 0;
+
+    if( strcmp(token2,"=") != 0) return 0;
+    
+    /*check here whether token1 is valid var name*/
+    strcpy(tmp, token1);
+    i=0;
+    while( tmp[i] != '\0' ){
+        if(isalnum( tmp[i++] )==0){
+            fprintf(stderr,"exiting. badly formed variable name: %s\n",token1);
+        }
+    }
+
+    /*created a left trimmed version of the remainder of the string*/
+    strcpy(tmp, string);
+    i=k=0;
+    //k=0;
+    while( isspace(tmp[i++]) ) continue;
+    while( tmp[i-1] != '\n' ){
+        string[k++]=tmp[i-1];  
+        i++;
+    }
+    string[k]='\0';
+    
+    /*check if var exists*/
+    /*and, if so, replace*/
+    while( var_node!=NULL ){
+        if (strcmp(var_node->key, token1) == 0){ 
+            strcpy(var_node->value, string);
+            return 1;
+        }
+        last_node=var_node;
+        var_node=var_node->next;
+    }
+
+    /*if here then add new var*/
+    last_node->next=vnalloc();
+    var_node=last_node->next;
+    var_node->next=NULL;   
+    var_node->key=(char*) malloc(MAX_LINE_LEN*sizeof(char));
+    var_node->value=(char*) malloc(MAX_LINE_LEN*sizeof(char));
+    strcpy(var_node->key, token1);
+    strcpy(var_node->value, string);
+
+    //fprintf(stderr,"%s %d check node: |%s| |%s|\n",__FILE__,__LINE__,var_node->key,var_node->value);        
+
+    return 1;
+}
+
+
 

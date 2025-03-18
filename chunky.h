@@ -17,6 +17,10 @@
 #define WAVE_FORMAT_PCM 0x0001
 #define FAST_FADE_MS 5
 
+#define DEBUGPRINT fprintf(stderr,"here: %s %d\n",__FILE__,__LINE__);
+
+
+
 /* ============================ */
 /* Structures and other typedefs*/
 /* ============================ */
@@ -92,7 +96,7 @@ struct 	ampl_node {
 	
 /*
 The linked list to store the envelopes in
-***** THIS IS NOTE CURRENTLY USED ******
+***** THIS IS NOT CURRENTLY USED ******
 */
 
 struct envl_node  {
@@ -101,9 +105,20 @@ struct envl_node  {
 		struct envl_node	*next ;
 		} ;
 
+
+/*
+Data list for variables
+*/
+
+struct variable_node {
+  char                   *key;
+  char                   *value;
+  struct variable_node   *next;
+  };
+
 		
 /* ===================== */	
-/* Function declerations */
+/* Function declarations */
 /* ===================== */
 
 /*General Writing functions*/
@@ -129,7 +144,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth,
 float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
-/*The waveforms*/
+/*The oscillators*/
 
 /*
 NB - these need to all have the 
@@ -145,7 +160,6 @@ float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float rnd_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
-
 /*Error functions*/
 void err_bad_line_format( long int l );
 
@@ -154,6 +168,15 @@ char is_string_blank( char *s );
 char strip_comments( char *l, char c );
 char get_first_string_element( char *line, char *element );
 int	 pad_char_in_str_with_char( char *string, char target, char pad, int max_str_len );
+
+/*variable parsing*/
+struct variable_node *vnalloc( void );
+struct variable_node * build_variable_list( void );
+int substitute_variables( char *s,  struct variable_node *var_node );
+char * get_var_value( char *key, struct variable_node *var_node );
+int assign_variables( char *s,  struct variable_node *var_node );
+void print_var_table( struct variable_node *var_node );
+
 
 /*parsing tools*/
 int count_open_close_pairs_in_string( char *string, char open_ch, char close_ch );
