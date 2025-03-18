@@ -20,8 +20,14 @@ struct variable_node *build_variable_list(  )
             var_node=var_node->next;
             var_node->next=NULL;
         }
-        var_node->key=note_lookup[i].key;
-        var_node->value=note_lookup[i].value;
+        
+        var_node->key=(char*) malloc(MAX_LINE_LEN*sizeof(char));
+        var_node->value=(char*) malloc(MAX_LINE_LEN*sizeof(char));
+        strcpy(var_node->key, note_lookup[i].key);
+        strcpy(var_node->value, note_lookup[i].value);
+
+        //var_node->key=note_lookup[i].key;
+        //var_node->value=note_lookup[i].value;
     }
 
     return top_node;
@@ -48,6 +54,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     char    line[ MAX_LINE_LEN ];
     char    tmp1[ MAX_LINE_LEN ], tmp2[ MAX_LINE_LEN ];    
     long    counter=0;
+    int     n;
 
     struct wave_node *node ;    
     node = NULL ;
@@ -61,13 +68,24 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     
         *nlines++;
 
+
         /*strip comments and ignore blank lines*/
         strip_comments( line, ';' );
         if( is_string_blank( line ) ) continue;
+
+        fprintf(stderr,"<<< %s",line);        
       
         /*substitute variables*/
-        substitute_variables( line, var_node );
-        //fprintf(stderr,"%s\n",line);
+        n=substitute_variables( line, var_node );
+        fprintf(stderr,"<<< subs:%d\n",n);        
+
+        /*assign variables*/
+        strcpy( tmp1, line ) ;
+        if( assign_variables( tmp1, var_node ) ) continue ;
+        
+        //print_var_table( var_node );    
+        fprintf(stderr,">>> %s",line);        
+        
         
         /*=============================================================
         Start with an initial parse of each line to check the number of  

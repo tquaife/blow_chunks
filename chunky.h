@@ -171,9 +171,12 @@ int	 pad_char_in_str_with_char( char *string, char target, char pad, int max_str
 
 /*variable parsing*/
 struct variable_node *vnalloc( void );
-struct variable_node * build_variable_list( );
+struct variable_node * build_variable_list( void );
 int substitute_variables( char *s,  struct variable_node *var_node );
 char * get_var_value( char *key, struct variable_node *var_node );
+int assign_variables( char *s,  struct variable_node *var_node );
+void print_var_table( struct variable_node *var_node );
+
 
 /*parsing tools*/
 int count_open_close_pairs_in_string( char *string, char open_ch, char close_ch );
