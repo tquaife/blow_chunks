@@ -3,5 +3,5 @@ OSC2=sqx
 NOTE=$A2
 FM=$A1
 
-$OSC2 $NOTE {$OSC1 $FM 1 1} 1 1 1
+$OSC1 $NOTE {$OSC1 $FM 1 1} 1 1 1
 
