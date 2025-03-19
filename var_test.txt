@@ -2,6 +2,21 @@ OSC1=tri
 OSC2=sqx
 NOTE=$A2
 FM=$A1
+RIGHTPAN=0 1 {sin 1 0.5 1} 
+LEFTPAN=1 {sin 1 0 1} 0
+PHASE=1
 
-$OSC1 $NOTE {$OSC1 $FM 1 1} 1 1 1
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $LEFTPAN
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $RIGHTPAN
+
+;$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE 0 1 {sin 1 0.5 1} 
+;$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE 1 {sin 1 0 1} 0
+
+;tri 110 {tri 55 1 1} 1   1 {sin 1 0 1} 0 {sin 1 0.5 1}
+;tri 110 {tri 55 1 1} 1   0 {sin 1 0 1} 1 {sin 1 0.5 1}
+
+;tri 110 {tri 55 1 1} 1   1 1 {sin 1 0.5 1}
+;tri 110 {tri 55 1 1} 1   1 {sin 1 0.5 1} 0
+;tri 110 {tri 55 1 1} 1   0 {sin 1 0 1} 1 {sin 1 0.5 1}
+
 

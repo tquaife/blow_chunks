@@ -136,7 +136,7 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
 struct wave_node *wnalloc( void );
 struct ampl_node *analloc( void );
 struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, 
-													PCM_fmt_chnk *fmt_chunk );
+								PCM_fmt_chnk *fmt_chunk, struct variable_node *var_node );
 													
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, 
 							long int *nlines, PCM_fmt_chnk *format );

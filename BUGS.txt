@@ -1,0 +1,53 @@
+All there is a problem where sometimes blow_chunks is expecting amplitude channels to be modulated when there is no modulator specified. Possibly it is inheriting the number of modulators incorrectly from another channel?
+
+******* For example...
+
+This works as expected:
+
+tri 110 {tri 55 1 1} 1   1 {sin 1 0 1} 0 {sin 1 0.5 1}
+tri 110 {tri 55 1 1} 1   0 {sin 1 0 1} 1 {sin 1 0.5 1}
+
+This throws an error:
+
+tri 110 {tri 55 1 1} 1   1  0 {sin 1 0.5 1}
+tri 110 {tri 55 1 1} 1   0 {sin 1 0 1} 1 {sin 1 0.5 1}
+
+But this is fine:
+
+tri 110 {tri 55 1 1} 1   1 {sin 1 0 1} 0 
+tri 110 {tri 55 1 1} 1   0 {sin 1 0 1} 1 {sin 1 0.5 1}
+
+******* UPDATE:
+
+Shorter example of code the triggers crash is:
+
+tri 110 {tri 55 1 1} 1   1 0 {sin 1 0.5 1}
+
+This works:
+
+tri 110 {tri 55 1 1} 1   1 {sin 1 0.5 1} 0
+
+
+******* Example gdb output:
+
+Program received signal SIGSEGV, Segmentation fault.
+calculate_data_value (node=0x555555585300, fmt_chunk=0x7fffffffdb80, pos=0, nwaves=2, sample_value=0x555555585470) at blow_chunks_engine.c:490
+490	                                           * (1 -(node->amp_list->a_mod->amp_list->amplitude \
+
+
+NOTE THE FOLLOWING:
+
+(gdb) print node->amp_list->a_mod
+$3 = (struct wave_node *) 0x0
+(gdb) print i
+$4 = 1
+
+i.e. the code is trying to access node->amp_list->a_mod, which doesn't exist. Specifically this happens for i=1
+
+
+******* Possible explanation...
+
+XXX It might be that a_node->a_mod is not being set to NULL in the correct place when reading the input file.
+---> NOPE - the looks like its correct. The outputs from print_data() appear fine.
+
+

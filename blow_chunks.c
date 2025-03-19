@@ -18,6 +18,7 @@ int	main( int argc, char **argv )
 	PCM_fmt_chnk		fmt_chunk;
 	
 	struct	wave_node	*top_node;
+    struct variable_node *var_node ;
 	
 	void 			parser(  );
 	
@@ -32,8 +33,13 @@ int	main( int argc, char **argv )
 	/*parse command line*/
 	parser( argc, argv, &duration, &fmt_chunk );
 
+    /*set up in-built variables*/
+    var_node = NULL ;
+    var_node=build_variable_list(  );
+
+
 	/* Set up the data structures */	
-	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk ) ) == NULL ){
+	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node ) ) == NULL ){
 		fprintf(stderr, "%s: no data found at stdin\n", argv[ 0 ] );
 		exit( EXIT_FAILURE );
 	} 
@@ -47,7 +53,7 @@ int	main( int argc, char **argv )
 		exit( EXIT_FAILURE );                
     }		
 			
-	/*allocate memeory for the samples*/	
+	/*allocate memory for the samples*/	
 	if( ( sample_value = (float *) malloc( sizeof(float) *  fmt_chunk.Channels ) ) == NULL ){
 		fprintf( stderr, "Failure to allocate memory for sample array\n" );
 		exit( EXIT_FAILURE );		

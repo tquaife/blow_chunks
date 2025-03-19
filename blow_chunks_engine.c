@@ -26,8 +26,6 @@ struct variable_node *build_variable_list(  )
         strcpy(var_node->key, note_lookup[i].key);
         strcpy(var_node->value, note_lookup[i].value);
 
-        //var_node->key=note_lookup[i].key;
-        //var_node->value=note_lookup[i].value;
     }
 
     return top_node;
@@ -48,7 +46,8 @@ at the top level is constant on every line of the input
 data. This could now be done in the text parsing function
 instead.
 */
-struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, PCM_fmt_chnk *format  )
+struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, 
+                                  PCM_fmt_chnk *format, struct variable_node *var_node   )
 {
 
     char    line[ MAX_LINE_LEN ];
@@ -57,35 +56,23 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     int     n;
 
     struct wave_node *node ;    
-    node = NULL ;
-
-    struct variable_node *var_node ;
-    var_node = NULL ;
-    var_node=build_variable_list(  );
-        
+    node = NULL ;        
         
     while( fgets( line, MAX_LINE_LEN, stdin ) != NULL ){
     
-        *nlines++;
-
+        (*nlines)++;
 
         /*strip comments and ignore blank lines*/
         strip_comments( line, ';' );
         if( is_string_blank( line ) ) continue;
 
-        fprintf(stderr,"<<< %s",line);        
-      
         /*substitute variables*/
         n=substitute_variables( line, var_node );
-        fprintf(stderr,"<<< subs:%d\n",n);        
 
         /*assign variables*/
         strcpy( tmp1, line ) ;
         if( assign_variables( tmp1, var_node ) ) continue ;
-        
-        //print_var_table( var_node );    
-        fprintf(stderr,">>> %s",line);        
-        
+                
         
         /*=============================================================
         Start with an initial parse of each line to check the number of  
@@ -137,7 +124,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         (*nwaves)++;
 
         /*Read the next data line into the wnode tree*/
-        node->next = setup_waveform_data_structures( nlines, nwaves, format );
+        node->next = setup_waveform_data_structures( nlines, nwaves, format, var_node );
 
     }
     return( node );
@@ -492,8 +479,9 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             if(i>0) a_node = a_node->amp_next ;
             if( a_node->a_mod != NULL ){
                 *(sample_value + i) += tmp * a_node->amplitude \
-                                           * (1 -(node->amp_list->a_mod->amp_list->amplitude \
+                                           * (1 -(a_node->a_mod->amp_list->amplitude \
                                            * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos))/2.));
+
             }else{
                 *(sample_value + i) += tmp * a_node->amplitude ;
             }

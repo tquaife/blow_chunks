@@ -575,7 +575,6 @@ int assign_variables( char *string,  struct variable_node *var_node )
     /*created a left trimmed version of the remainder of the string*/
     strcpy(tmp, string);
     i=k=0;
-    //k=0;
     while( isspace(tmp[i++]) ) continue;
     while( tmp[i-1] != '\n' ){
         string[k++]=tmp[i-1];  
