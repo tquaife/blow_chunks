@@ -1,3 +1,5 @@
+THIS IS NOW FIXED
+
 All there is a problem where sometimes blow_chunks is expecting amplitude channels to be modulated when there is no modulator specified. Possibly it is inheriting the number of modulators incorrectly from another channel?
 
 ******* For example...

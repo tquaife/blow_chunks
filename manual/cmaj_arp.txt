@@ -1,0 +1,9 @@
+;C major stereo arpeggiator, using in-built 
+;variables to specify the notes
+;suggest generating at least 6 second sample
+LfoSpeed=0.8
+sn3 $C4 1 1 {sqx $LfSpeed 0 1} 1 {sqx $LfoSpeed 0.5 1}
+sn3 $E4 1 1 {sqx $LfoSpeed 0.16 1} 1 {sqx $LfoSpeed 0.67 1}
+sn3 $G4 1 1 {sqx $LfoSpeed 0.33 1} 1 {sqx $LfoSpeed 0.83 1}
+
+

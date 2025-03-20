@@ -288,4 +288,33 @@ sn3 392.0 1 1 {sqx 1 0.33 1} 1 {sqx 1 0.83 1}
 \end{lstlisting}
 
 
+\section{Variables}
+
+\blowchunks supports variables, including user defined and predefined ones (which can be overwritten by the user). The strength of user defined variables is largely in conjunction with other parts of the \blowchunks interface, but the predefined variables have some more obvious applications. The frequency values of notes in the twelve tone equal temperament tuning with A referenced to 440Hz are all stored as variables. All variables begin with the ``\$'' character, and the frequency values can be retrived by typing, for example, \$A2 (which is 110Hz). Flats are specified with a ``b'' character (e.g. \$Ab2) and sharps with an ``s'' character (e.g. \$As2). That means we can rewrite input files so that the contain the note names, which is far more convenient. The C major chord example now becomes:
+
+\begin{lstlisting}
+;C major stereo arpeggiator, using in-built 
+;variables to specify the notes
+;suggest generating at least 6 second sample
+sn3 $C4 1 1 {sqx 1 0 1} 1 {sqx 1 0.5 1}
+sn3 $E4 1 1 {sqx 1 0.16 1} 1 {sqx 1 0.67 1}
+sn3 $G4 1 1 {sqx 1 0.33 1} 1 {sqx 1 0.83 1}
+\end{lstlisting}
+
+To provide and example of the user defined variables, imagine you wanted to experiment with the speed of the arpeggiation in the previous example. It would be necessary to change the frequency of each of the LFO modulator in turn the the same thing. In more complex sounds this could become onerous and a likely source of error. Instead, we can set variable to hold that value, as follows: 
+ 
+\begin{lstlisting}
+;A slower C major stereo arpeggiator, using in-built 
+;variables to specify the notes and a speed variable
+;suggest generating at least 6 second sample
+LfoSpeed=0.8
+sn3 $C4 1 1 {sqx $LfoSpeed 0 1} 1 {sqx $LfoSpeed 0.5 1}
+sn3 $E4 1 1 {sqx $LfoSpeed 0.16 1} 1 {sqx $LfoSpeed 0.67 1}
+sn3 $G4 1 1 {sqx $LfoSpeed 0.33 1} 1 {sqx $LfoSpeed 0.83 1}
+\end{lstlisting}
+
+It's good practice to name variables is a meaningful way, but any combination of alphanumeric characters are permitted. No spaces or punctuation can be used, and the variables are case sensitive.
+
+
+
 \end{document}
