@@ -32,6 +32,57 @@ struct variable_node *build_variable_list(  )
 }
 
 
+int proc_commands( char *string,  struct control *ctrl ){
+
+    char token1[ MAX_LINE_LEN ];
+    char tmp1[ MAX_LINE_LEN ];
+    int  i, k;
+    char *x;
+
+    get_first_string_element( string, token1 );
+
+    if (strcmp(token1, "@print") == 0){
+        /*created a left trimmed version of the remainder of the string*/
+        strcpy(tmp1, string);
+        i=k=0;
+        while( isspace(tmp1[i++]) ) continue;
+        while( tmp1[i-1] != '\n' ){
+            string[k++]=tmp1[i-1];  
+            i++;
+        }
+        string[k]='\0';
+        fprintf(stderr, "%s\n", string);
+        fflush(stderr);
+    }else if (strcmp(token1, "@volume") == 0){
+        if( get_first_string_element( string, token1 )==0 ){
+            fprintf(stderr, "exiting: expected argument to @volume command: %s\n", token1);
+            exit(1);
+        }
+        ctrl->master_volume=(float)strtod(token1, &x);
+        if(*x!=0){
+            fprintf(stderr, "exiting: could not read argument to @volume command: %s\n", token1);
+            exit(1);
+        }else if(ctrl->master_volume<0.0){
+            fprintf(stderr, "exiting: @volume should not be less than 0.0: %s\n", token1);
+            exit(1);
+        }else if(ctrl->master_volume>1.0){
+            fprintf(stderr, "warning: setting @volume greater than 1.0 will end in tears!: %s\n", token1);
+        }        
+    }else if (strncmp(token1, "@", 1) == 0){
+        /*this one must come last, just before 
+        the else statement*/
+        fprintf(stderr, "exiting: unknown command: %s\n", token1);
+        exit(1);
+    }else{
+        /*if we got here it shouldn't be a 
+        command line so return 0 to keep 
+        processing the input file*/
+        return 0;
+    }
+    return 1; 
+}
+
+
 /*
 A recursive function which reads the data in line by line.
 Comments are removed and blank lines are ignored.
@@ -47,7 +98,8 @@ data. This could now be done in the text parsing function
 instead.
 */
 struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, 
-                                  PCM_fmt_chnk *format, struct variable_node *var_node   )
+                                  PCM_fmt_chnk *format, struct variable_node *var_node,
+                                  struct control *ctrl )
 {
 
     char    line[ MAX_LINE_LEN ];
@@ -62,6 +114,14 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     
         (*nlines)++;
 
+        /*=============================================================
+        Pre-processing stuff. Strip comments, ignore blank lines,
+        assign and substitute variables. Execute commands.
+        
+        n.b. be very careful with the ordering of these actions.
+        ==============================================================*/
+
+
         /*strip comments and ignore blank lines*/
         strip_comments( line, ';' );
         if( is_string_blank( line ) ) continue;
@@ -69,6 +129,10 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         /*substitute variables*/
         n=substitute_variables( line, var_node );
 
+        /*commands*/
+        strcpy( tmp1, line ) ;
+        if( proc_commands( tmp1, ctrl ) ) continue ;
+        
         /*assign variables*/
         strcpy( tmp1, line ) ;
         if( assign_variables( tmp1, var_node ) ) continue ;
@@ -116,6 +180,9 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
             fprintf( stderr, "Failure to allocate memory for data structure\n" );
             exit( EXIT_FAILURE );
         }
+        
+        /*copy over relevant variables from the control structure*/
+        node->master_volume=ctrl->master_volume;        
                 
         /* parse the string and set up the data structure*/
         parse_modulator( node, line, 0, nlines, format );    
@@ -124,7 +191,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         (*nwaves)++;
 
         /*Read the next data line into the wnode tree*/
-        node->next = setup_waveform_data_structures( nlines, nwaves, format, var_node );
+        node->next = setup_waveform_data_structures( nlines, nwaves, format, var_node, ctrl );
 
     }
     return( node );
@@ -470,7 +537,12 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         else        
             local_node->phase = node->phase ;
                 
+        /*data value prior to any modification
+        for its amplitude*/        
         tmp = node->func( local_node, fmt_chunk, pos );
+        
+        /*apply master volume here*/
+        tmp*=node->master_volume;        
                 
         /*apply amplitudes for the individual channels*/    
         a_node=node->amp_list ;

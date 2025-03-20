@@ -80,6 +80,8 @@ struct	wave_node {
 		struct ampl_node	*amp_list;
 		struct wave_node	*next;
 		
+		float               master_volume ;
+		
 		float               rnd_mem;
 		};
 		
@@ -103,6 +105,17 @@ struct envl_node  {
 		float				samps ;
 		float				value ;
 		struct envl_node	*next ;
+		} ;
+
+
+/*
+Control structure for passing 
+*/
+
+struct control  {
+		float				master_volume ;
+		float				seq_start;
+		float				seq_duration;
 		} ;
 
 
@@ -136,7 +149,8 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
 struct wave_node *wnalloc( void );
 struct ampl_node *analloc( void );
 struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, 
-								PCM_fmt_chnk *fmt_chunk, struct variable_node *var_node );
+								PCM_fmt_chnk *fmt_chunk, struct variable_node *var_node,
+								struct control *ctrl );
 													
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, 
 							long int *nlines, PCM_fmt_chnk *format );

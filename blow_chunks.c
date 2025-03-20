@@ -19,6 +19,7 @@ int	main( int argc, char **argv )
 	
 	struct	wave_node	*top_node;
     struct variable_node *var_node ;
+    struct control ctrl; //not a pointer!
 	
 	void 			parser(  );
 	
@@ -37,9 +38,13 @@ int	main( int argc, char **argv )
     var_node = NULL ;
     var_node=build_variable_list(  );
 
+    /*set up the control structure*/
+    ctrl.master_volume=1.0;
+    ctrl.seq_start=0.0;
+    ctrl.seq_duration=duration;
 
 	/* Set up the data structures */	
-	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node ) ) == NULL ){
+	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
 		fprintf(stderr, "%s: no data found at stdin\n", argv[ 0 ] );
 		exit( EXIT_FAILURE );
 	} 

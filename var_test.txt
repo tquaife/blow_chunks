@@ -1,3 +1,4 @@
+;set up variables:
 OSC1=tri
 OSC2=sqx
 NOTE=$A2
@@ -6,6 +7,13 @@ RIGHTPAN=0 1 {sin 1 0.5 1}
 LEFTPAN=1 {sin 1 0 1} 0
 PHASE=1
 
+;check the value of RIGHTPAN 
+@print right pan: $RIGHTPAN
+
+;set the master volume
+@volume 0.9
+
+;define the sound:
 $OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $LEFTPAN
 $OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $RIGHTPAN
 

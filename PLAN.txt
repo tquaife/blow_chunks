@@ -1,0 +1,7 @@
+X1. Implement a new parser that checks for commands
+X2. Have a "control" data structure that gets passed down and can store stuff from commands
+X3. As a first pass, add a "neutral" command -- print
+X4. Commands start with @, e.g. @print
+X5. Move to @volume and implement the volume change via the top level oscillators -> needs a "volume" entry in the data structure.
+6. Next up @sequence with arguments of start and duration
+ 
