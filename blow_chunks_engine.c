@@ -41,6 +41,9 @@ int proc_commands( char *string,  struct control *ctrl ){
 
     get_first_string_element( string, token1 );
 
+    /**************************
+    ********* @Print **********
+    ***************************/
     if (strcmp(token1, "@print") == 0){
         /*created a left trimmed version of the remainder of the string*/
         strcpy(tmp1, string);
@@ -53,6 +56,10 @@ int proc_commands( char *string,  struct control *ctrl ){
         string[k]='\0';
         fprintf(stderr, "%s\n", string);
         fflush(stderr);
+        
+    /**************************
+    ********* @Volume **********
+    ***************************/
     }else if (strcmp(token1, "@volume") == 0){
         if( get_first_string_element( string, token1 )==0 ){
             fprintf(stderr, "exiting: expected argument to @volume command: %s\n", token1);
@@ -68,6 +75,44 @@ int proc_commands( char *string,  struct control *ctrl ){
         }else if(ctrl->master_volume>1.0){
             fprintf(stderr, "warning: setting @volume greater than 1.0 will end in tears!: %s\n", token1);
         }        
+        
+    /**************************
+    ******* @Sequence *********
+    ***************************/
+    }else if (strcmp(token1, "@sequence") == 0){
+        /*get start time*/
+        if( get_first_string_element( string, token1 )==0 ){
+            fprintf(stderr, "exiting: expected argument to @sequence command: %s\n", token1);
+            exit(1);
+        }
+        ctrl->seq_start=(float)strtod(token1, &x);
+        if(*x!=0){
+            fprintf(stderr, "exiting: could not read 1st argument to @sequence command: %s\n", token1);
+            exit(1);
+        }else if(ctrl->seq_start<0.0){
+            fprintf(stderr, "exiting: @sequence start should not be less than 0.0: %s\n", token1);
+            exit(1);
+        }
+        /*get duration*/
+        if( get_first_string_element( string, token1 )==0 ){
+            fprintf(stderr, "exiting: expected argument to @sequence command: %s\n", token1);
+            exit(1);
+        }
+        ctrl->seq_duration=(float)strtod(token1, &x);
+        if(*x!=0){
+            fprintf(stderr, "exiting: could not read 2nd argument to @sequence command: %s\n", token1);
+            exit(1);
+        }else if(ctrl->seq_duration<0.0){
+            fprintf(stderr, "exiting: @sequence duration should not be less than 0.0: %s\n", token1);
+            exit(1);
+        }
+        /*reset the total duration of the sound if needed*/
+        if((ctrl->seq_start+ctrl->seq_duration)>ctrl->total_length)
+            ctrl->total_length=ctrl->seq_start+ctrl->seq_duration;
+        
+    /**************************
+    ********* unknown *********
+    ***************************/                
     }else if (strncmp(token1, "@", 1) == 0){
         /*this one must come last, just before 
         the else statement*/
@@ -182,7 +227,9 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         }
         
         /*copy over relevant variables from the control structure*/
-        node->master_volume=ctrl->master_volume;        
+        node->master_volume=ctrl->master_volume;    
+        node->start_time=ctrl->seq_start;    
+        node->duration=ctrl->seq_duration;    
                 
         /* parse the string and set up the data structure*/
         parse_modulator( node, line, 0, nlines, format );    
@@ -209,7 +256,7 @@ to make the data with.
 Still needs work. Usable return values might be nice
 for example. The code could probably also be simplified
 a lot too and error checking on the calls to strtod
-should also be implimented.
+should also be implemented.
 
 ** THIS FUNCTION NEEDS UPDATING WHEN NEW WAVEFORMS ARE**
               **ADDED TO THE CODE**
@@ -500,8 +547,11 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
                                     long int pos, long int nwaves, float *sample_value )
 {
 
-    float        tmp;
+    float       tmp;
     long        i;
+    long int    pos_start;
+    long int    pos_end;
+    long int    pos_local;
     
     struct ampl_node *a_node ;
     struct wave_node *local_node ;
@@ -519,30 +569,40 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     tmp = 0.00 ;
     
     /*loop through the data structure*/
-    
     while( node != NULL ){
         
+        /*could do this when the initial data structures
+        are set up - will save some comp time*/
+        pos_start=node->start_time*fmt_chunk->SampleRate;
+        pos_end=pos_start+node->duration*fmt_chunk->SampleRate;
+        pos_local=pos-pos_start;
+        
+        if( (pos<pos_start)||(pos>pos_end)){
+            node=node->next;
+            continue ;
+        }
         /*set up f, the value that */    
-        node->f = node->frequency * pos * 2*M_PI / (float) fmt_chunk->SampleRate ;
+        node->f = node->frequency * pos_local * 2*M_PI / (float) fmt_chunk->SampleRate ;
         
         /*frequency modulation*/
         if( node->f_mod != NULL )
-            local_node->f = node->f + node->f_mod->amp_list->amplitude * modulate_waveform( node->f_mod, fmt_chunk, pos ) ;
+            local_node->f = node->f + node->f_mod->amp_list->amplitude * modulate_waveform( node->f_mod, fmt_chunk, pos_local ) ;
         else        
             local_node->f = node->f ;
                         
         /*phase modulation*/    
         if( node->p_mod != NULL )
-            local_node->phase = node->phase + node->p_mod->amp_list->amplitude * modulate_waveform( node->p_mod, fmt_chunk, pos ) ;
+            local_node->phase = node->phase + node->p_mod->amp_list->amplitude * modulate_waveform( node->p_mod, fmt_chunk, pos_local ) ;
         else        
             local_node->phase = node->phase ;
                 
         /*data value prior to any modification
         for its amplitude*/        
-        tmp = node->func( local_node, fmt_chunk, pos );
-        
+        tmp = node->func( local_node, fmt_chunk, pos_local );
+
         /*apply master volume here*/
         tmp*=node->master_volume;        
+        
                 
         /*apply amplitudes for the individual channels*/    
         a_node=node->amp_list ;
@@ -552,7 +612,7 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             if( a_node->a_mod != NULL ){
                 *(sample_value + i) += tmp * a_node->amplitude \
                                            * (1 -(a_node->a_mod->amp_list->amplitude \
-                                           * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos))/2.));
+                                           * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos_local))/2.));
 
             }else{
                 *(sample_value + i) += tmp * a_node->amplitude ;
@@ -562,6 +622,8 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
 
         node=node->next;        
     }    
+
+
 
     /*scale the resulting values correctly*/    
     for( i=0; i<fmt_chunk->Channels ; i++ )

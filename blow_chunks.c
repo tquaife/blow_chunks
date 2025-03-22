@@ -7,11 +7,10 @@
 int	main( int argc, char **argv )
 {
 
-	long int		i=0, j,num_samples;
+	long int		i=0, num_samples;
 	long int		nlines=0, nwaves=0;
 	int             verbose=FALSE ;
 	float			*sample_value, duration=1.0;
-	float			num_fade_samples;
 	
 	RIFF_hdr		wav_header;
 	chunk_hdr		fmt_header, data_header;
@@ -42,6 +41,7 @@ int	main( int argc, char **argv )
     ctrl.master_volume=1.0;
     ctrl.seq_start=0.0;
     ctrl.seq_duration=duration;
+    ctrl.total_length=duration;
 
 	/* Set up the data structures */	
 	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
@@ -66,7 +66,7 @@ int	main( int argc, char **argv )
 
 	/* Setup header information and format chunk */
 	setup_PCM_fmt_chunk( &fmt_chunk );
-	setup_chunk_headers( &wav_header, &fmt_header, &data_header, &fmt_chunk, duration );
+	setup_chunk_headers( &wav_header, &fmt_header, &data_header, &fmt_chunk, ctrl.total_length );
 	
 	/* Write .wav file up to start of data */
 	write_wav_header( &wav_header );
@@ -75,36 +75,16 @@ int	main( int argc, char **argv )
 	write_chunk_hdr( &data_header );
 	
 	
-	/* Calculate and write data values */	
+	/* Calculate and write data values */		
+	num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
 	
-	num_samples = duration * fmt_chunk.SampleRate ; 
-	num_fade_samples = ( FAST_FADE_MS * fmt_chunk.SampleRate ) / 1000.0 ;
 	
-	/*Fast fade in*/
-	while( i < num_fade_samples ){
-		calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );	
-		for( j=0; j<fmt_chunk.Channels; j++ ) *( sample_value + j ) = \
-					*( sample_value + j ) * ( i / (float)num_fade_samples ) ;
-		write_pcm_data_sample( &fmt_chunk, sample_value );
-		
-		++i;		
-	}
-	
-	/*Non-faded data*/
-	while( i < ( num_samples - num_fade_samples ) ){		
+	while( i < num_samples ){		
 		calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );
 		write_pcm_data_sample( &fmt_chunk, sample_value );
 		++i;
 	}	
 		
-	/*Fast fade out*/
-	while( i < num_samples ){
-		calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );
-		for( j=0; j<fmt_chunk.Channels; j++ ) *( sample_value + j ) = \
-					*( sample_value + j ) * ( (num_samples-i-1) / (float)num_fade_samples );
-		write_pcm_data_sample( &fmt_chunk, sample_value );
-		++i ;
-	}
 
 	return( EXIT_SUCCESS );	
 }

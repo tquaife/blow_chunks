@@ -11,10 +11,44 @@ PHASE=1
 @print right pan: $RIGHTPAN
 
 ;set the master volume
-@volume 0.9
+@volume 4.0
+
+;test sequencer
+@sequence 0 1
 
 ;define the sound:
 $OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $LEFTPAN
 $OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $RIGHTPAN
+
+;test sequencer
+@sequence 1 1
+
+NOTE=$E2
+FM=$E1
+
+;define the sound:
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $LEFTPAN
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $RIGHTPAN
+
+;test sequencer
+@sequence 2 0.5
+
+NOTE=$G2
+FM=$G3
+
+;define the sound:
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $LEFTPAN
+$OSC1 $NOTE {$OSC1 $FM 1 1} $PHASE $RIGHTPAN
+
+;test sequencer
+@sequence 2.5 2.5
+
+NOTE=$E2
+FM=$E3
+
+;define the sound:
+$OSC1 $NOTE {$OSC1 $FM 1 1{sqx 2 1 0.5}}  $PHASE $LEFTPAN
+$OSC1 $NOTE {$OSC1 $FM 1 1{sqx 2 0.5 0.5}} $PHASE $RIGHTPAN
+
 
 

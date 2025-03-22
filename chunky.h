@@ -80,8 +80,12 @@ struct	wave_node {
 		struct ampl_node	*amp_list;
 		struct wave_node	*next;
 		
+		/*sequencer valriables*/
 		float               master_volume ;
+		float               start_time;
+		float               duration;
 		
+		/*experimental*/
 		float               rnd_mem;
 		};
 		
@@ -116,6 +120,7 @@ struct control  {
 		float				master_volume ;
 		float				seq_start;
 		float				seq_duration;
+		float               total_length;
 		} ;
 
 
