@@ -556,6 +556,9 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     struct ampl_node *a_node ;
     struct wave_node *local_node ;
     
+    float num_fade_samples = ( FAST_FADE_MS * fmt_chunk->SampleRate ) / 1000.0 ;
+    
+    
     /*allocate local node*/    
     if( ( local_node = wnalloc(   ) ) == NULL ){
         fprintf( stderr, "Failure to allocate memory for data structure\n" );
@@ -603,6 +606,12 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         /*apply master volume here*/
         tmp*=node->master_volume;        
         
+
+        /*apply fast faders here*/ 
+        if( pos<(pos_start+num_fade_samples ) )
+            tmp*=pos_local/(float)num_fade_samples;  
+        if( pos>(pos_end-num_fade_samples ) )
+            tmp*=(pos_end-pos)/(float)num_fade_samples;  
                 
         /*apply amplitudes for the individual channels*/    
         a_node=node->amp_list ;
@@ -715,7 +724,7 @@ float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 }
 
 
-/* --- a differentiable (smooth) version of the sqaure wave --- */
+/* --- a differentiable (smooth) version of the square wave --- */
 
 float sqx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
@@ -751,9 +760,13 @@ float tri_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
     long int    ppos;
 
     
+    /*this line causing floating point exceptions (e.g. pos=0)*/
+    /*
     node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );
-
     samples_per_cycle = fmt_chunk->SampleRate / node->frequency;
+    */
+    
+    samples_per_cycle = ( pos * 2 * M_PI )/node->f;
     
     /*samples_per_cycle = pos * 2 * M_PI / node->f ;*/
 

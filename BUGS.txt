@@ -1,0 +1,8 @@
+tri wave is bugged, the following can cause floating point exceptions:
+
+sample_value = ( ( ( ( ( ppos % ( long ) samples_per_cycle ) ) / samples_per_cycle ) *2 ) - 1 ) ;
+
+Solution... write a better triangular wave!
+
+
+
