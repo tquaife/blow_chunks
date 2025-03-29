@@ -18,10 +18,14 @@ X12. Add duration (or length) to the control structure
 DEBUG tri
 
 Math parser
+Normalise
 Envelopes
 Lots of new ocillators
 re-write command line parser
 
+
 New commands:
 - Include blow_chunks file
 - Preview ?? (or via command line)
+- Tracks ??
+
