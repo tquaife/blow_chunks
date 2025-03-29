@@ -1,3 +1,5 @@
+@sequence 0 20
+
 ;squelch
 sin 880 {sin 55 1 50 {tri 0.1 1 1} } 1 0.3 {sqx 1 0.5 1} 0.3 {sqx 1 0.75 1}
 

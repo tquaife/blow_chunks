@@ -5,11 +5,12 @@ Math parser
 Normalise
 Envelopes
 Lots of new ocillators
-X re-write command line parser
+DONE re-write command line parser
 
 
 New commands:
 - Include blow_chunks file
 - Preview ?? (or via command line)
 - Tracks ??
-
+- echo on/off ??
+- blocks define/insert ??

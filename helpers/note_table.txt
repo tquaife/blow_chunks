@@ -1,18 +1,3 @@
-#ifndef GOT_NOTE_LUT
-
-/*
-Data table for notes
-*/
-
-typedef struct note {
-  char                   *key;
-  char                   *value;
-}NOTE;
-
-
-
-
-NOTE note_lookup[] = {
  {"Cb1","30.86771"},
  {"C1","32.70320"},
  {"Cs1","34.64783"},
@@ -181,9 +166,3 @@ NOTE note_lookup[] = {
  {"Bb8","7458.62019"},
  {"B8","7902.13282"},
  {"Bs8","8372.01809"},
-};
-
-#define GOT_NOTE_LUT 1
-#endif
-
-

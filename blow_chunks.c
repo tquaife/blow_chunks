@@ -3,37 +3,35 @@
 #include <unistd.h>
 #include <chunky.h>
 
-
-int	main( int argc, char **argv )
+int    main( int argc, char **argv )
 {
-
-	long int		i=0, num_samples;
-	long int		nlines=0, nwaves=0;
-	int             verbose=FALSE ;
-	float			*sample_value; 
-	float           default_duration=1.0;
-	
-	RIFF_hdr		wav_header;
-	chunk_hdr		fmt_header, data_header;
-	PCM_fmt_chnk    fmt_chunk;
-	
-	struct	wave_node	*top_node;
+    long int        i=0, num_samples;
+    long int        nlines=0, nwaves=0;
+    float           *sample_value; 
+    float           default_duration=1.0;
+    
+    RIFF_hdr        wav_header;
+    chunk_hdr       fmt_header, data_header;
+    PCM_fmt_chnk    fmt_chunk;
+    
+    struct wave_node     *top_node;
     struct variable_node *var_node ;
     struct control ctrl; //not a pointer!
-	
-	void 			clparser(  );	
-	
-	/* -- Setup defaults -- */
-	fmt_chunk.Channels=1;
-	fmt_chunk.SampleRate=44100;
-	fmt_chunk.AvgBytesPerSec=88200;
-	fmt_chunk.BlockAlign=2;
-	fmt_chunk.PCM_bps=16;
+    
+    void             clparser(  );    
+    
+    /* -- Setup defaults -- */
+    fmt_chunk.Channels=1;
+    fmt_chunk.SampleRate=44100;
+    fmt_chunk.AvgBytesPerSec=88200;
+    fmt_chunk.BlockAlign=2;
+    fmt_chunk.PCM_bps=16;
     ctrl.seq_duration=default_duration;
     ctrl.total_length=default_duration;
-	
-	/*parse command line*/
-	clparser( argc, argv, &ctrl, &fmt_chunk );
+    ctrl.verbose=FALSE;
+    
+    /*parse command line*/
+    clparser( argc, argv, &ctrl, &fmt_chunk );
 
     /*set up in-built variables*/
     var_node = NULL ;
@@ -42,53 +40,49 @@ int	main( int argc, char **argv )
     /*set up the control structure*/
     ctrl.master_volume=1.0;
     ctrl.seq_start=0.0;
-    //ctrl.seq_duration=duration;
-    //ctrl.total_length=duration;
 
-	/* Set up the data structures */	
-	if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
-		fprintf(stderr, "%s: no data found at stdin\n", argv[ 0 ] );
-		exit( EXIT_FAILURE );
-	} 
+    /* Set up the data structures */    
+    if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
+        fprintf(stderr, "%s: no data found at stdin\n", argv[ 0 ] );
+        exit( EXIT_FAILURE );
+    } 
 
     /*print the data structure for checking*/
-    if(verbose)print_data(top_node,0);
+    if(ctrl.verbose)print_data(top_node,0);
 
-	/* - Check output is being redirected - */
-	if( isatty( fileno( stdout ) ) ){
-		fprintf( stderr, "%s: output must be redirected\nexiting\n", argv[ 0 ] );
-		exit( EXIT_FAILURE );                
-    }		
-			
-	/*allocate memory for the samples*/	
-	if( ( sample_value = (float *) malloc( sizeof(float) *  fmt_chunk.Channels ) ) == NULL ){
-		fprintf( stderr, "Failure to allocate memory for sample array\n" );
-		exit( EXIT_FAILURE );		
-	}
+    /* - Check output is being redirected - */
+    if( isatty( fileno( stdout ) ) ){
+        fprintf( stderr, "%s: output must be redirected\nexiting\n", argv[ 0 ] );
+        exit( EXIT_FAILURE );                
+    }        
+            
+    /*allocate memory for the samples*/    
+    if( ( sample_value = (float *) malloc( sizeof(float) *  fmt_chunk.Channels ) ) == NULL ){
+        fprintf( stderr, "Failure to allocate memory for sample array\n" );
+        exit( EXIT_FAILURE );        
+    }
 
-	/* Setup header information and format chunk */
-	setup_PCM_fmt_chunk( &fmt_chunk );
-	setup_chunk_headers( &wav_header, &fmt_header, &data_header, &fmt_chunk, ctrl.total_length );
-	
-	/* Write .wav file up to start of data */
-	write_wav_header( &wav_header );
-	write_chunk_hdr( &fmt_header );	
-	write_PCM_fmt_chunk( &fmt_chunk );
-	write_chunk_hdr( &data_header );
-	
-	
-	/* Calculate and write data values */		
-	num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
-	
-	/*loop over time (samples) and write out*/
-	while( i < num_samples ){		
-		calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );
-		write_pcm_data_sample( &fmt_chunk, sample_value );
-		++i;
-	}	
-		
-
-	return( EXIT_SUCCESS );	
+    /* Setup header information and format chunk */
+    setup_PCM_fmt_chunk( &fmt_chunk );
+    setup_chunk_headers( &wav_header, &fmt_header, &data_header, &fmt_chunk, ctrl.total_length );
+    
+    /* Write .wav file up to start of data */
+    write_wav_header( &wav_header );
+    write_chunk_hdr( &fmt_header );    
+    write_PCM_fmt_chunk( &fmt_chunk );
+    write_chunk_hdr( &data_header );
+    
+    num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
+    
+    /*loop over time (samples) and write out*/
+    num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
+    while( i < num_samples ){        
+        calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );
+        write_pcm_data_sample( &fmt_chunk, sample_value );
+        ++i;
+    }    
+        
+    return( EXIT_SUCCESS );    
 }
 
 
@@ -116,6 +110,9 @@ PCM_fmt_chnk *format;
             else if( !strncasecmp( argv[ i ],"--sample_rate",5 ) || !strcasecmp(argv[ i ],"-s") )                 
                     format->SampleRate = (long)atoi( argv[ ++i ] );                    
 
+            else if( !strncasecmp( argv[ i ],"--verbose",5 ) || !strcasecmp(argv[ i ],"-v") )                 
+                    ctrl->verbose=TRUE;
+                                       
             else if( !strncasecmp( argv[ i ],"--usage",5 ) || !strcasecmp(argv[ i ],"-u") )                 
                     usage(argv[0]);                    
             else{
@@ -134,6 +131,8 @@ void usage(char *binary_name)
         fprintf(stderr, "--duration|-d arg\t\twhere arg is the duration in seconds [float]\n" );
         fprintf(stderr, "--bits_per_sample|-b arg\twhere arg is the bits per sample of the wav file [int]\n" );
         fprintf(stderr, "--sample_rate|-s arg\t\twhere arg is the sample rate of the wav file in Hertz [int]\n" );
+        fprintf(stderr, "--verbose|-v\t\t\tprint additional messages to the stderr\n" );
+        fprintf(stderr, "--usage|-u\t\t\tprint the usage message (this one!) to the stderr\n" );
 
         fprintf(stderr, "\n\n");
         exit( EXIT_FAILURE );        

@@ -1,0 +1,23 @@
+;C major arpeggio
+
+@sequence 0.0 0.2
+sn3 $C4 1 1 1 
+
+@sequence 0.2 0.2
+sn3 $E4 1 1 1 
+
+@sequence 0.4 0.2
+sn3 $G4 1 1 1 
+
+@sequence 0.6 0.2
+sn3 $C5 1 1 1 
+
+@sequence 0.8 0.2
+sn3 $G4 1 1 1 
+
+@sequence 1.0 0.2
+sn3 $E4 1 1 1 
+
+@sequence 1.2 0.4
+sn3 $C4 1 1 1 
+

@@ -121,6 +121,7 @@ struct control  {
 		float				seq_start;
 		float				seq_duration;
 		float               total_length;
+		int                 verbose;
 		} ;
 
 

@@ -316,5 +316,28 @@ sn3 $G4 1 1 {sqx $LfoSpeed 0.33 1} 1 {sqx $LfoSpeed 0.83 1}
 It's good practice to name variables is a meaningful way, but any combination of alphanumeric characters are permitted. No spaces or punctuation can be used, and the variables are case sensitive.
 
 
+\section{The @sequence command}
+
+Commands in \blowchunks start with the ``@'' character and probably the most import is the @sequence command which allows oscillators to start and stop at different times. Commands typically take a number of arguments and @sequence requires two: the start time and duration, in seconds, of the oscillators that follow it until the next @sequence command is encountered.
+
+\begin{lstlisting}
+;C major arpeggio
+@sequence 0.0 0.2
+sn3 $C4 1 1 1 
+@sequence 0.2 0.2
+sn3 $E4 1 1 1 
+@sequence 0.4 0.2
+sn3 $G4 1 1 1 
+@sequence 0.6 0.2
+sn3 $C5 1 1 1 
+@sequence 0.8 0.2
+sn3 $G4 1 1 1 
+@sequence 1.0 0.2
+sn3 $E4 1 1 1 
+@sequence 1.2 0.4
+sn3 $C4 1 1 1 
+\end{lstlisting}
+
+@sequence commands do not need to come in any particular order, so it is possible to organise the input file in whatever way is most intuitive. The duration of the wav file is set to whichever is longer between the maximum length of the sequences \emph{or} the duration specified on the command line. 
 
 \end{document}
