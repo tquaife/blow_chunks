@@ -1,19 +1,3 @@
-X1. Implement a new parser that checks for commands
-X2. Have a "control" data structure that gets passed down and can store stuff from commands
-X3. As a first pass, add a "neutral" command -- print
-X4. Commands start with @, e.g. @print
-X5. Move to @volume and implement the volume change via the top level oscillators -> needs a "volume" entry in the data structure.
-X6. Next up @sequence with arguments of start and duration
----
-X7. Remove fast faders
-X8. Read @sequence command & add to control structure (start + duration) & add to top nodes
-X9. Rewrite calculate sample function to have a local time for each top node, zero outside start<->(start+duration)
-X10. Implement fast faders for each top node
-X11. Get max length (=max((start+duration)[:])
-X12. Add duration (or length) to the control structure 
-
-
-**** Future:
 
 DEBUG tri
 
@@ -21,7 +5,7 @@ Math parser
 Normalise
 Envelopes
 Lots of new ocillators
-re-write command line parser
+X re-write command line parser
 
 
 New commands:
