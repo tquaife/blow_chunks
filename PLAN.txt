@@ -1,16 +1,24 @@
+** Main todo list:
 
-DEBUG tri
-
-Math parser
 Normalise
 Envelopes
-Lots of new ocillators
-DONE re-write command line parser
+Lots of new oscillators
 
+** Debugging required: 
 
-New commands:
+tri wav
+seg fault on big input files
+
+** Recently completed
+
+Math parser
+re-write command line parser
+
+** Possible new commands:
 - Include blow_chunks file
 - Preview ?? (or via command line)
 - Tracks ??
 - echo on/off ??
-- blocks define/insert ??
+- block define/insert ??
+
+

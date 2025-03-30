@@ -340,4 +340,41 @@ sn3 $C4 1 1 1
 
 @sequence commands do not need to come in any particular order, so it is possible to organise the input file in whatever way is most intuitive. The duration of the wav file is set to whichever is longer between the maximum length of the sequences \emph{or} the duration specified on the command line. 
 
+
+\section{Maths}
+
+\blowchunks can parse basic mathematical expressions: addition (+), subtraction (-), multiplication (*) and division(/). In conjunction with variables, this allows for much easier control over the input files. Taking the previous C major arpeggio, consider the steps needed to change the speed of the arpeggio. It would be necessary to change the @sequence start time and duration throughout. This can be avoided as follows:
+
+\begin{lstlisting}
+;C major arpeggio with speed control
+beatLen=0.2
+timeStep=0.0
+@sequence $timeStep $beatLen
+sn3 $C4 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $E4 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $G4 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $C5 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $G4 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $E4 1 1 1 
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $C4 1 1 1 
+\end{lstlisting}
+
+This is a little more effort to set up, but now there is a single variable (\texttt{beatLen}) which is the only thing needed to change the speed of the arpeggio. For longer files, this can save a lot of work and help avoid errors.
+
+The order in which mathematical operations are carried out are multiplication and division first followed by addition and subtraction. \blowchunks doesn't support parentheses in mathematical expressions, and the mathematical operators must appear between to numbers (or variables which contain numbers).
+
+
+
 \end{document}
