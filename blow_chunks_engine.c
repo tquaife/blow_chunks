@@ -150,7 +150,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     char    line[ MAX_LINE_LEN ];
     char    tmp1[ MAX_LINE_LEN ], tmp2[ MAX_LINE_LEN ];    
     long    counter=0;
-    int     n;
 
     struct wave_node *node ;    
     node = NULL ;        
@@ -172,8 +171,11 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         if( is_string_blank( line ) ) continue;
 
         /*substitute variables*/
-        n=substitute_variables( line, var_node );
+        substitute_variables( line, var_node );
 
+        /*do any maths*/
+        parse_maths( line );
+        
         /*commands*/
         strcpy( tmp1, line ) ;
         if( proc_commands( tmp1, ctrl ) ) continue ;

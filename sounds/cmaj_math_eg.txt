@@ -1,0 +1,32 @@
+;C major arpeggio
+
+beatLen=0.2
+timeStep=0.0
+
+@sequence $timeStep $beatLen
+sn3 $C4 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $E4 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $G4 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $C5 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $G4 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $E4 1 1 1 
+
+timeStep=$timeStep+$beatLen
+@sequence $timeStep $beatLen
+sn3 $C4 1 1 1 
+

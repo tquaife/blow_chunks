@@ -188,6 +188,7 @@ char is_string_blank( char *s );
 char strip_comments( char *l, char c );
 char get_first_string_element( char *line, char *element );
 int	 pad_char_in_str_with_char( char *string, char target, char pad, int max_str_len );
+int  parse_maths( char * string );
 
 /*variable parsing*/
 struct variable_node *vnalloc( void );
