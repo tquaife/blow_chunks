@@ -1,6 +1,10 @@
 ** Main todo list:
 
 Normalise
+- use buffer for sounds
+- write one waveform at time
+- slower but more robust
+
 Envelopes
 Lots of new oscillators
 
@@ -15,6 +19,10 @@ Math parser
 re-write command line parser
 
 ** Possible new commands:
+- @randu var1 [var2 [var3 [...]]]
+- @randu_scale scale
+- @repeat n | @end_repeat
+
 - Include blow_chunks file
 - Preview ?? (or via command line)
 - Tracks ??

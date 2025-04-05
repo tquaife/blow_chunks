@@ -110,7 +110,9 @@ char *string;
              string[j++]=tokens[i][k++];
         string[j++]=' ';
     }
-    string[j]='\0';
+    string[j]='\n';
+    string[j+1]='\0';
+
 
     return 0;
 }

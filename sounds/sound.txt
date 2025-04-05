@@ -1,0 +1,53 @@
+note=220
+speed=0.5
+
+@volume 3
+
+dur=4
+
+f=3
+time=0
+@sequence $time $dur
+sin $note {sin $note/$f 1 1 {sin 2 1 2}} 1 1 {sqx 2*$speed 1 1} 1 {sqx 2*$speed 0.5 1}
+sin $note {sin $note/$f 1 1 {sin 3 1 2}} 1 1 {sqx 3*$speed 0.5 1} 1 {sqx 3*$speed 1.0 1}
+sin $note {sin $note/$f 1 1 {sin 1 1 2}} 1 1 {sqx 1*$speed 0.25 1} 1 {sqx 1*$speed 0.75 1}
+
+f=4
+time=$time+$dur
+@print $time
+
+@sequence $time $dur
+sin $note {sin $note/$f 1 1 {sin 2 1 2}} 1 1 {sqx 2*$speed 1 1} 1 {sqx 2*$speed 0.5 1}
+
+sin $note {sin $note/$f 1 1 {sin 3 1 2}} 1 1 {sqx 3*$speed 0.5 1} 1 {sqx 3*$speed 1.0 1}
+
+sin $note {sin $note/$f 1 1 {sin 1 1 2}} 1 1 {sqx 1*$speed 0.25 1} 1 {sqx 1*$speed 0.75 1}
+
+
+f=3
+
+time=$time+$dur
+
+@sequence $time $dur
+sin $note {sin $note/$f 1 1 {sin 2 1 2}} 1 1 {sqx 2*$speed 1 1} 1 {sqx 2*$speed 0.5 1}
+
+sin $note {sin $note/$f 1 1 {sin 3 1 2}} 1 1 {sqx 3*$speed 0.5 1} 1 {sqx 3*$speed 1.0 1}
+
+sin $note {sin $note/$f 1 1 {sin 1 1 2}} 1 1 {sqx 1*$speed 0.25 1} 1 {sqx 1*$speed 0.75 1}
+
+
+
+f=4
+
+time=$time+$dur
+
+@sequence $time $dur
+
+sin $note {sin $note/$f 1 1 {sin 2 1 2}} 1 1 {sqx 2*$speed 1 1} 1 {sqx 2*$speed 0.5 1}
+
+sin $note {sin $note/$f 1 1 {sin 3 1 2}} 1 1 {sqx 3*$speed 0.5 1} 1 {sqx 3*$speed 1.0 1}
+
+sin $note {sin $note/$f 1 1 {sin 1 1 2}} 1 1 {sqx 1*$speed 0.25 1} 1 {sqx 1*$speed 0.75 1}
+
+
+

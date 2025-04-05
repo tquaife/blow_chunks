@@ -184,6 +184,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         strcpy( tmp1, line ) ;
         if( assign_variables( tmp1, var_node ) ) continue ;
                 
+                        
         
         /*=============================================================
         Start with an initial parse of each line to check the number of  
