@@ -43,7 +43,7 @@ int    main( int argc, char **argv )
 
     /* Set up the data structures */    
     if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
-        fprintf(stderr, "%s: no data found at stdin\n", argv[ 0 ] );
+        fprintf(stderr, "%s: no wave data found at stdin\n", argv[ 0 ] );
         exit( EXIT_FAILURE );
     } 
 

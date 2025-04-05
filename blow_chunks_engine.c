@@ -129,18 +129,21 @@ int proc_commands( char *string,  struct control *ctrl ){
 
 
 /*
-A recursive function which reads the data in line by line.
+Reads the data in line by line.
 Comments are removed and blank lines are ignored.
+variables and maths are then parsed.
 What remains is then fed into a parser, line by line, to
 set up the core data structure. 
-
-Should probably be re-written so that it isn't recursive
-but it is not a time limiting factor in a typical run.
 
 This function also checks to see if the number of channels
 at the top level is constant on every line of the input
 data. This could now be done in the text parsing function
 instead.
+
+05/04/25 - re-written to make it not a recursive
+function as this was causing stack overflows for 
+very big input files.
+
 */
 struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nwaves, 
                                   PCM_fmt_chnk *format, struct variable_node *var_node,
@@ -151,8 +154,9 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     char    tmp1[ MAX_LINE_LEN ], tmp2[ MAX_LINE_LEN ];    
     long    counter=0;
 
-    struct wave_node *node ;    
+    struct wave_node *node, *top_node ;    
     node = NULL ;        
+    top_node = NULL ;        
         
     while( fgets( line, MAX_LINE_LEN, stdin ) != NULL ){
     
@@ -164,7 +168,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         
         n.b. be very careful with the ordering of these actions.
         ==============================================================*/
-
 
         /*strip comments and ignore blank lines*/
         strip_comments( line, ';' );
@@ -184,7 +187,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         strcpy( tmp1, line ) ;
         if( assign_variables( tmp1, var_node ) ) continue ;
                 
-                        
         
         /*=============================================================
         Start with an initial parse of each line to check the number of  
@@ -223,10 +225,18 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         Now read the input file into the data structure
         =================================================*/
         
-        /*Allocate the wave node*/    
-        if( ( node = wnalloc(  ) ) == NULL ){        
-            fprintf( stderr, "Failure to allocate memory for data structure\n" );
-            exit( EXIT_FAILURE );
+        if( *nwaves==0 ){
+            if( ( node = wnalloc(  ) ) == NULL ){        
+                fprintf( stderr, "Failure to allocate memory for data structure\n" );
+                exit( EXIT_FAILURE );
+            }        
+            top_node=node;
+        }else{
+            if( ( node->next = wnalloc(  ) ) == NULL ){        
+                fprintf( stderr, "Failure to allocate memory for data structure\n" );
+                exit( EXIT_FAILURE );
+            }        
+            node=node->next;
         }
         
         /*copy over relevant variables from the control structure*/
@@ -240,11 +250,8 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         /*track the total number of lines*/        
         (*nwaves)++;
 
-        /*Read the next data line into the wnode tree*/
-        node->next = setup_waveform_data_structures( nlines, nwaves, format, var_node, ctrl );
-
     }
-    return( node );
+    return( top_node );
 } 
 
 

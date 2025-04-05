@@ -1,22 +1,24 @@
 ** Main todo list:
 
+Envelopes
+Lots of new oscillators
+
 Normalise
 - use buffer for sounds
 - write one waveform at time
 - slower but more robust
 
-Envelopes
-Lots of new oscillators
 
 ** Debugging required: 
 
 tri wav
-seg fault on big input files
 
 ** Recently completed
 
 Math parser
 re-write command line parser
+seg fault on big input files
+- was a stack overflow
 
 ** Possible new commands:
 - @randu var1 [var2 [var3 [...]]]
