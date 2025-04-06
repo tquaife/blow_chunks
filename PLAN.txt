@@ -1,7 +1,13 @@
 ** Main todo list:
 
 Envelopes
-Lots of new oscillators
+- tidy up modulator parsing first?
+
+New oscillators
+- rand square
+- sqrt sin
+- triangle wave
+- swap old sawtooths for trig functions
 
 Normalise
 - use buffer for sounds
@@ -11,14 +17,14 @@ Normalise
 
 ** Debugging required: 
 
-tri wav
+??? Probably loads
 
 ** Recently completed
 
+tri->sup
 Math parser
 re-write command line parser
-seg fault on big input files
-- was a stack overflow
+solved stack overflow on big input files
 
 ** Possible new commands:
 - @randu var1 [var2 [var3 [...]]]

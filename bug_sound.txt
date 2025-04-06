@@ -1,8 +1,0 @@
-;why doesn't this go up and down in pitch?:
-;modulating with a sine wave in this way
-;works exactly how you'd expect
-;sin 220{sqr 1 1 110} 1 1
-
-;causes a floating point exception:
-@volume 0.5
-tri 110{tri 55{sin 22.5 1 1} 1 1} 1 1

@@ -1,7 +1,7 @@
 @sequence 0 20
 
 ;squelch
-sin 880 {sin 55 1 50 {tri 0.1 1 1} } 1 0.3 {sqx 1 0.5 1} 0.3 {sqx 1 0.75 1}
+sin 880 {sin 55 1 50 {sup 0.1 1 1} } 1 0.3 {sqx 1 0.5 1} 0.3 {sqx 1 0.75 1}
 
 ;nice arp:
 sin 220 1 0.5 {sqx 1 1 1} 0.6 {sqx 1 0.5 1} 

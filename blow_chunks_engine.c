@@ -347,8 +347,12 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         node->func=&sqx_wave;
     else if( ! strcmp( wfunc, "sqr" ) )
         node->func=&sqr_wave;
-    else if( ! strcmp( wfunc, "tri" ) )
-        node->func=&tri_wave;
+    else if( ! strcmp( wfunc, "sup" ) )
+        node->func=&sup_wave;
+    else if( ! strcmp( wfunc, "sut" ) )
+        node->func=&sut_wave;
+    else if( ! strcmp( wfunc, "sdn" ) )
+        node->func=&sdn_wave;
     else if( ! strcmp( wfunc, "sn3" ) )
         node->func=&sn3_wave;
     else if( ! strcmp( wfunc, "sn5" ) )
@@ -630,7 +634,7 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             if(i>0) a_node = a_node->amp_next ;
             if( a_node->a_mod != NULL ){
                 *(sample_value + i) += tmp * a_node->amplitude \
-                                           * (1 -(a_node->a_mod->amp_list->amplitude \
+                                           * ((a_node->a_mod->amp_list->amplitude \
                                            * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos_local))/2.));
 
             }else{
@@ -683,7 +687,7 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
     /*amplitude modulation*/
     if( node->amp_list->a_mod != NULL )
-        mod *= ( 1. - node->amp_list->a_mod->amp_list->amplitude * 0.5 * ( 1 + modulate_waveform(node->amp_list->a_mod, fmt_chunk, pos) ) );
+        mod *= ( node->amp_list->a_mod->amp_list->amplitude * 0.5 * ( 1 + modulate_waveform(node->amp_list->a_mod, fmt_chunk, pos) ) );
     
     return( mod ) ;
 
@@ -762,30 +766,52 @@ float sqr_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
     return( sample_value );
 }
 
-/* --- tringular (positive gradient) wave --- */
+/* --- saw tooth (positive gradient) wave --- */
 
-float tri_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+float sup_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
     float        samples_per_cycle, sample_value;
     long int    ppos;
 
     
-    /*this line causing floating point exceptions (e.g. pos=0)*/
-    /*
-    node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );
-    samples_per_cycle = fmt_chunk->SampleRate / node->frequency;
-    */
-    
     samples_per_cycle = ( pos * 2 * M_PI )/node->f;
-    
-    /*samples_per_cycle = pos * 2 * M_PI / node->f ;*/
-
     ppos = pos + node->phase * samples_per_cycle;
+    if( ppos==0 ) return -1;
+    
     sample_value = ( ( ( ( ( ppos % ( long ) samples_per_cycle ) ) / samples_per_cycle ) *2 ) - 1 ) ;
-
-
     return( sample_value );
 }
+
+/* --- trigonometric saw tooth (positive gradient) wave --- */
+
+
+float sut_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+
+    float    sample_value;
+    sample_value = 2./M_PI* atan(tan( (node->f + (node->phase+0.5)*2*M_PI)/2. ));
+
+    return( sample_value );
+    
+}
+
+
+/* --- saw tooth (negative gradient) wave --- */
+
+float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+
+    float        samples_per_cycle, sample_value;
+    long int    ppos;
+
+    samples_per_cycle = ( pos * 2 * M_PI )/node->f;
+    ppos = pos + ( node->phase ) * samples_per_cycle;
+    if( ppos==0 ) return 1;
+    
+    sample_value =  ( ppos % ( long ) samples_per_cycle ) / samples_per_cycle ;
+    sample_value =  2.*sample_value - 1. ;
+    sample_value*=-1.;
+    return( sample_value );
+}
+
 
 
 /* --- random noise --- */

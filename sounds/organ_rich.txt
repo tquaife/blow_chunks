@@ -1,8 +1,8 @@
 ; two second sound
-sin 220 {sin 220 {tri 0.5 1 10} 1 1 {tri 0.5 1 1}} 1 1
-sin 220 {sin 110 {tri 0.5 1 10} 1 1 {tri 0.5 1 1}} 1 1 
-sin 220 {sin 55 {tri 0.5 1 10} 1 1 {tri 0.5 1 10}} 1 1 
-sin 110 {sin 220 {tri 0.5 1 10} 1 1 {tri 0.5 1 1}} 1 0.1 
-sin 110 {sin 110 {tri 0.5 1 10} 1 1 {tri 0.5 1 1}} 1 0.1 
-sin 110 {sin 55 {tri 0.5 1 10} 1 1 {tri 0.5 1 10}} 1 0.1 
+sin 220 {sin 220 {sup 0.5 1 10} 1 1 {sup 0.5 1 1}} 1 1
+sin 220 {sin 110 {sup 0.5 1 10} 1 1 {sup 0.5 1 1}} 1 1 
+sin 220 {sin 55 {sup 0.5 1 10} 1 1 {sup 0.5 1 10}} 1 1 
+sin 110 {sin 220 {sup 0.5 1 10} 1 1 {sup 0.5 1 1}} 1 0.1 
+sin 110 {sin 110 {sup 0.5 1 10} 1 1 {sup 0.5 1 1}} 1 0.1 
+sin 110 {sin 55 {sup 0.5 1 10} 1 1 {sup 0.5 1 10}} 1 0.1 
 

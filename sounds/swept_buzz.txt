@@ -1,5 +1,5 @@
 ;set up variables:
-OSC1=tri
+OSC1=sup
 OSC2=sqx
 NOTE=$A2
 FM=$A1

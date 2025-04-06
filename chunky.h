@@ -174,7 +174,9 @@ same arguments as each other
 float sin_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sqr_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sqx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
-float tri_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float sup_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float sut_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn3_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float rnd_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
