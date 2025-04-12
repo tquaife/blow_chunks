@@ -1,6 +1,7 @@
 blow_chunks
 *.o
 *~
+*.bak
 *.wav
 **/*.wav
 

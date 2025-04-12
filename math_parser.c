@@ -49,7 +49,7 @@ char *string;
     /*must be in operator order:*/
     char op_syms[]="*/+-";
     
-    int i, j, k, ntokens, nops;
+    int i, j, k, ntokens;
     float a, b;
     char *x;
     char symbol[]="x";
@@ -75,31 +75,30 @@ char *string;
     while( *(op_syms+k) != '\0'){
         symbol[0]=*(op_syms+k++);
         func=get_op_func(symbol[0]);
-        do{
-            nops=0;
-            for(i=0;i<ntokens;i++){
-               if(strcmp(tokens[i],symbol)==0){
-                   if(i==0){
-                       fprintf(stderr,"error: math operator found at start of string. exiting\n");
-                       exit(EXIT_FAILURE);
-                   }
-                   a=(float)strtod(tokens[i-1], &x);
-                   if(*x!=0){
-                       fprintf(stderr, "error: could not read floating point number: %s\n", tokens[i-1]);
-                        exit(EXIT_FAILURE);
-                  } 
-                   b=(float)strtod(tokens[i+1], &x);
-                   if(*x!=0){
-                       fprintf(stderr, "error: could not read floating point number: %s\n", tokens[i+1]);
-                        exit(EXIT_FAILURE);
-                  } 
-                  sprintf(tokens[i-1],"%f",func(a,b));
-                  for(j=i;j<(ntokens-1);j++) strcpy( tokens[j],tokens[j+2] );
-                  nops++;
-                  ntokens-=2;
+        for(i=0;i<ntokens;i++){
+           if(strcmp(tokens[i],symbol)==0){
+               if(i==0){
+                   fprintf(stderr,"error: math operator found out of place. exiting\n");
+                   exit(EXIT_FAILURE);
                }
-            }
-        }while(nops>0);
+               a=(float)strtod(tokens[i-1], &x);
+               if(*x!=0){
+                   fprintf(stderr, "error: could not read floating point number: %s\n", tokens[i-1]);
+                    exit(EXIT_FAILURE);
+              } 
+               b=(float)strtod(tokens[i+1], &x);
+               if(*x!=0){
+                   fprintf(stderr, "error: could not read floating point number: %s\n", tokens[i+1]);
+                    exit(EXIT_FAILURE);
+              } 
+              sprintf(tokens[i-1],"%f",func(a,b));
+              for(j=i;j<(ntokens-1);j++) strcpy( tokens[j],tokens[j+2] );
+              ntokens-=2;
+              /*need to move counter 
+              one token back:   */
+              i--;
+           }
+        }
     }
 
     /*Rebuild the input line */

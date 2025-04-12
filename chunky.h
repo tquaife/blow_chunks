@@ -164,8 +164,11 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth,
 float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
-/*The oscillators*/
 
+/*Oscillator assignment*/
+float(* assign_oscillator_function(char *wfunc))(struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos);
+
+/*The oscillators*/
 /*
 NB - these need to all have the 
 same arguments as each other

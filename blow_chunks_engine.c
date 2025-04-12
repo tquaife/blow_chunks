@@ -268,9 +268,6 @@ for example. The code could probably also be simplified
 a lot too and error checking on the calls to strtod
 should also be implemented.
 
-** THIS FUNCTION NEEDS UPDATING WHEN NEW WAVEFORMS ARE**
-              **ADDED TO THE CODE**
-
 */
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format )
 {
@@ -290,15 +287,15 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     and could be placed here too.
     */
 
+    /*check {} are balanced at top level*/
     strcpy( tmp1, line ) ;                
     if( chop_out_bracketed_from_string( tmp1, '{', '}' ) < 0 ){
         fprintf( stderr, "ill formed {} on line %ld\n", *nlines );
         exit( EXIT_FAILURE );
     }            
                 
-    while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
-
     /*modulators only have a single amplitude*/
+    while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
     if( counter > 4 && depth > 0 ){
         fprintf( stderr, "modulator with more then one amplitude on line %ld\n", *nlines );
         exit( EXIT_FAILURE );
@@ -338,28 +335,10 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     pad_char_in_str_with_char( line, '{', ' ', MAX_LINE_LEN );
     pad_char_in_str_with_char( line, '}', ' ', MAX_LINE_LEN );
         
-    /*determine the waveform*/        
+    /*determine the waveform and get function*/        
     get_first_string_element( line, wfunc ) ;
-        
-    if( ! strcmp( wfunc, "sin" ) )
-        node->func=&sin_wave;     
-    else if( ! strcmp( wfunc, "sqx" ) )
-        node->func=&sqx_wave;
-    else if( ! strcmp( wfunc, "sqr" ) )
-        node->func=&sqr_wave;
-    else if( ! strcmp( wfunc, "sup" ) )
-        node->func=&sup_wave;
-    else if( ! strcmp( wfunc, "sut" ) )
-        node->func=&sut_wave;
-    else if( ! strcmp( wfunc, "sdn" ) )
-        node->func=&sdn_wave;
-    else if( ! strcmp( wfunc, "sn3" ) )
-        node->func=&sn3_wave;
-    else if( ! strcmp( wfunc, "sn5" ) )
-        node->func=&sn5_wave;
-    else if( ! strcmp( wfunc, "rnd" ) )
-        node->func=&rnd_wave;
-    else{
+
+    if ((node->func=assign_oscillator_function(wfunc))==NULL){
         fprintf( stderr, "Unknown wave function: %s, on line %ld\n", wfunc, *nlines);
         exit( EXIT_FAILURE );
     }
@@ -695,156 +674,12 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
 
 
-/*
-   ======The oscillators=====
-N.B. they must all have the same args 
-regardless of whether they use them or not
-*/
-
-
-/* --- sine wave --- */
-
-float sin_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float    sample_value;
-
-    sample_value = sin( node->f + node->phase*2*M_PI );
-
-    return( sample_value );
-    
-}
-
-
-/* --- sine cubed wave --- */
-
-float sn3_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float sample_value;
-
-    sample_value = sin( node->f + node->phase*2*M_PI );
-
-    return( sample_value * sample_value * sample_value );
-}
-
-/* --- sine quinted wave --- */
-
-float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float sample_value;
-
-    sample_value = sin( node->f + node->phase*2*M_PI );
-
-    return( sample_value * sample_value * sample_value * sample_value * sample_value );
-}
-
-
-/* --- a differentiable (smooth) version of the square wave --- */
-
-float sqx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float    sample_value;
-    float    delta=0.005;
-    sample_value = 2./M_PI*atan(sin( node->f + node->phase*2*M_PI )/delta);
-
-    return( sample_value );
-    
-}
-
-
-
-/* --- square wave --- */
-
-float sqr_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float sample_value;
-
-    sample_value = sin( node->f + node->phase*2*M_PI );
-
-    if( sample_value > 0 ) sample_value = 1.0;
-    else sample_value = -1.0 ;
-
-    return( sample_value );
-}
-
-/* --- saw tooth (positive gradient) wave --- */
-
-float sup_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float        samples_per_cycle, sample_value;
-    long int    ppos;
-
-    
-    samples_per_cycle = ( pos * 2 * M_PI )/node->f;
-    ppos = pos + node->phase * samples_per_cycle;
-    if( ppos==0 ) return -1;
-    
-    sample_value = ( ( ( ( ( ppos % ( long ) samples_per_cycle ) ) / samples_per_cycle ) *2 ) - 1 ) ;
-    return( sample_value );
-}
-
-/* --- trigonometric saw tooth (positive gradient) wave --- */
-
-
-float sut_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float    sample_value;
-    sample_value = 2./M_PI* atan(tan( (node->f + (node->phase+0.5)*2*M_PI)/2. ));
-
-    return( sample_value );
-    
-}
-
-
-/* --- saw tooth (negative gradient) wave --- */
-
-float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float        samples_per_cycle, sample_value;
-    long int    ppos;
-
-    samples_per_cycle = ( pos * 2 * M_PI )/node->f;
-    ppos = pos + ( node->phase ) * samples_per_cycle;
-    if( ppos==0 ) return 1;
-    
-    sample_value =  ( ppos % ( long ) samples_per_cycle ) / samples_per_cycle ;
-    sample_value =  2.*sample_value - 1. ;
-    sample_value*=-1.;
-    return( sample_value );
-}
-
-
-
-/* --- random noise --- */
-
-float rnd_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
-
-    float    sample_value ;
-    
-    sample_value = ( 2.0 * rand() / (float) RAND_MAX ) - 1.0;
-
-    /* did not work as expexted... but shows how memory can be included:*/
-    /*
-    node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );   
-    sample_value = sample_value + node->frequency * node->rnd_mem;
-    node->rnd_mem = sample_value;
-    */
-    
-    return( sample_value );
-}
-
-
-
-
-
-
 /*Error in reading input line*/
 
 void err_bad_line_format( long int l )
 {
-
     fprintf( stderr, "Bad formatting on line %ld -- exiting\n", l );
     exit( EXIT_FAILURE );
-
 }
 
 

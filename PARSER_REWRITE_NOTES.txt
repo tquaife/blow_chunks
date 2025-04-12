@@ -1,0 +1,4 @@
+DONE - Change the oscillator assignment to a lookup table (similar to the maths functions)
+DONE - move all modulators out into a new files, along with the lookup table
+
+- write a single function to do the modulator assignment (it is almost the same for each type, so hopefully easy). 

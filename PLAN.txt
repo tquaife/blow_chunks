@@ -1,7 +1,7 @@
 ** Main todo list:
 
 Envelopes
-- tidy up modulator parsing first?
+- rewrite oscillator parser first
 
 New oscillators
 - rand square
@@ -21,7 +21,8 @@ Normalise
 
 ** Recently completed
 
-tri->sup
+simplified math parsing logic (removed do-while loop)
+tri->sup (because it's a sawtooth, not a triangle)
 Math parser
 re-write command line parser
 solved stack overflow on big input files
