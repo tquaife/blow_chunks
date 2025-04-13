@@ -182,7 +182,8 @@ float sut_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn3_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
-float rnd_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float wht_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
 /*Error functions*/

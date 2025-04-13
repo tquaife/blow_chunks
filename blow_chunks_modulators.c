@@ -1,9 +1,7 @@
 #include<chunky.h>
 
-
 float(* assign_oscillator_function(char *wfunc))(struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos)
 {
-
     if (     ! strcmp( wfunc, "sin" ) )
         return &sin_wave;     
     else if( ! strcmp( wfunc, "sqx" ) )
@@ -20,19 +18,18 @@ float(* assign_oscillator_function(char *wfunc))(struct wave_node *node, PCM_fmt
         return &sn3_wave;
     else if( ! strcmp( wfunc, "sn5" ) )
         return &sn5_wave;
-    else if( ! strcmp( wfunc, "rnd" ) )
-        return &rnd_wave;
+    else if( ! strcmp( wfunc, "wht" ) )
+        return &wht_wave;
+    else if( ! strcmp( wfunc, "rsq" ) )
+        return &rsq_wave;
     else
         return NULL;
-
 }
-
 
 /* =========The oscillators======== */
 /* N.B. they must all have the same args 
 regardless of whether they use them or not
 */
-
 
 /* --- sine wave --- */
 float sin_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
@@ -112,19 +109,36 @@ float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
     return( sample_value );
 }
 
-/* --- random noise --- */
-float rnd_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+/* --- white noise --- */
+float wht_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
     float    sample_value ;
     sample_value = ( 2.0 * rand() / (float) RAND_MAX ) - 1.0;
-    /* did not work as expexted... but shows how memory can be included:*/
-    /*
-    node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );   
-    sample_value = sample_value + node->frequency * node->rnd_mem;
-    node->rnd_mem = sample_value;
-    */    
     return( sample_value );
 }
+
+
+/* --- random square --- */
+/*this is experimental doesn't
+quite work as planned yet*/
+float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+
+    float    sample_value ;
+    float    r, s;
+    
+    s = ( 2.0 * rand() / (float) RAND_MAX ) - 1.0;
+    r = rand() / (float) RAND_MAX;
+
+    node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );   
+    
+    sample_value=node->rnd_mem;
+    if(r<(node->frequency/fmt_chunk->SampleRate)) sample_value=s;
+    node->rnd_mem = sample_value;
+
+    return( sample_value );
+}
+
+
 
 
 
