@@ -1,7 +1,7 @@
 ** Main todo list:
 
 Envelopes
-- rewrite oscillator parser first
+- rewrite oscillator parser first [DONE]
 
 New oscillators
 - rand square

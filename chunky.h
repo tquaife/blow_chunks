@@ -161,6 +161,9 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, 
 							long int *nlines, PCM_fmt_chnk *format );
 
+struct wave_node * setup_modulator(char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format);
+
+
 float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
@@ -185,9 +188,10 @@ float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float wht_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
-
 /*Error functions*/
 void err_bad_line_format( long int l );
+
+
 
 /*String functions*/
 char is_string_blank( char *s );
@@ -203,7 +207,6 @@ int substitute_variables( char *s,  struct variable_node *var_node );
 char * get_var_value( char *key, struct variable_node *var_node );
 int assign_variables( char *s,  struct variable_node *var_node );
 void print_var_table( struct variable_node *var_node );
-
 
 /*parsing tools*/
 int count_open_close_pairs_in_string( char *string, char open_ch, char close_ch );

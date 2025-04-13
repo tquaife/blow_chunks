@@ -220,11 +220,10 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
                 exit( EXIT_FAILURE );
         }
         
-
         /*===============================================
         Now read the input file into the data structure
-        =================================================*/
-        
+        =================================================*/ 
+
         if( *nwaves==0 ){
             if( ( node = wnalloc(  ) ) == NULL ){        
                 fprintf( stderr, "Failure to allocate memory for data structure\n" );
@@ -272,14 +271,12 @@ should also be implemented.
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format )
 {
     
-    char    wfunc[ 10 ];
+    char    wfunc[ 20 ];
     char    tmp1[ MAX_LINE_LEN ], tmp2[ MAX_LINE_LEN ];
-    char    modulator[ MAX_LINE_LEN ];
     
     long      i, counter=0;
 
     struct ampl_node *a_node ;
-
 
     /*
     Perform a couple of checks of the string that has been passed
@@ -337,83 +334,27 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         
     /*determine the waveform and get function*/        
     get_first_string_element( line, wfunc ) ;
-
     if ((node->func=assign_oscillator_function(wfunc))==NULL){
         fprintf( stderr, "Unknown wave function: %s, on line %ld\n", wfunc, *nlines);
         exit( EXIT_FAILURE );
     }
 
-    /* get the frequency, phase and amplitudes */
+    /* get the frequency*/
     get_first_string_element( line, tmp2 ) ;
     node->frequency = (float) strtod( tmp2, (char **)NULL ) ;
 
-    get_first_string_element( line, tmp2 ) ;
-        
-    /*if what comes back is a { then we expect 
-    a frequency modulator to follow*/
-        
-    if( '{' == *tmp2 ){
-        
-        /*first put the { back on the front of the string*/
-        sprintf( tmp1, "{ %s", line );
-        strcpy( line, tmp1 );
-        
-        /*now get the frequency modulator from the first {} pair*/
-        strcpy( modulator, line );
-        extract_first_bracketed_from_string( modulator, '{', '}' );
-        
-        /*allocate memory for node*/
-        if( ( node->f_mod = wnalloc( ) ) == NULL ){
-            fprintf( stderr, "Failure to allocate memory for data structure\n" );
-            exit( EXIT_FAILURE );
-        }
-                        
-        /*parse the sub string*/
-        parse_modulator( node->f_mod, modulator, depth+1, nlines, format );
-                
-        /*remove that modulator and get the phase 
-        (which should be next)*/    
-        chop_out_first_bracketed_from_string( line, '{', '}' );
-        
-        get_first_string_element( line, tmp2 );
-        
-    }
-        
+    /*get the frequency modulator*/
+    node->f_mod=setup_modulator(line,depth,nlines,format);
+
+    /* get the phase*/
+    get_first_string_element( line, tmp2 );    
     node->phase = (float) strtod( tmp2, (char **)NULL ) ;
                 
-    get_first_string_element( line, tmp2 ) ;
-
-    /*if what comes back is a { then we expect 
-    a phase modulator to follow*/
-        
-    if( '{' == *tmp2 ){
-        
-        /*first put the { back on the front of the string*/
-        sprintf( tmp1, "{ %s", line );
-        strcpy( line, tmp1 );
-        
-        /*now get the modulator from the first {} pair*/
-        strcpy( modulator, line );
-        extract_first_bracketed_from_string( modulator, '{', '}' );
-        
-        /*allocate memory for node*/
-        if( ( node->p_mod = wnalloc( ) ) == NULL ){
-            fprintf( stderr, "Failure to allocate memory for data structure\n" );
-            exit( EXIT_FAILURE );
-        }
-                        
-        /*parse the sub string*/
-        parse_modulator( node->p_mod, modulator, depth+1, nlines, format );
-                
-        /*remove that modulator*/
-        chop_out_first_bracketed_from_string( line, '{', '}' );
-        
-        /*get the next element*/
-        get_first_string_element( line, tmp2 );
-        
-    }
+    /*get the phase modulator*/                     
+    node->p_mod=setup_modulator(line,depth,nlines,format);
 
     /*Get channel 1 amplitude*/
+    get_first_string_element( line, tmp2 );    
     a_node = node->amp_list ;
     a_node->amplitude = (float) strtod( tmp2, (char **)NULL ) ;
     
@@ -423,79 +364,19 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         exit( EXIT_FAILURE );
     }
         
-    get_first_string_element( line, tmp2 );    
-        
-    /*if what comes back is a { then we expect 
-    an amplitude modulator to follow*/
-        
-    if( '{' == *tmp2 ){
-        
-        /*first put the { back on the front of the string*/
-        sprintf( tmp1, "{ %s", line );
-        strcpy( line, tmp1 );
-        
-        /*now get the modulator from the first {} pair*/
-        strcpy( modulator, line );
-        extract_first_bracketed_from_string( modulator, '{', '}' );
-        
-        /*allocate memory for node*/
-        if( ( a_node->a_mod = wnalloc( ) ) == NULL ){
-            fprintf( stderr, "Failure to allocate memory for data structure\n" );
-            exit( EXIT_FAILURE );
-        }
-                        
-        /*parse the sub string*/
-        parse_modulator( a_node->a_mod, modulator, depth+1, nlines, format );
-                
-        /*remove that modulator*/
-        
-        chop_out_first_bracketed_from_string( line, '{', '}' );
-        
-        get_first_string_element( line, tmp2 );
-        
-    }
-    
-        
+    /*get the amplitude modulator for channel 1)*/                     
+    a_node->a_mod=setup_modulator(line,depth,nlines,format);
+
+    /*now loop over the other channels*/
     while( a_node->amp_next != NULL ){
         
-        if( depth > 0 ){
-            fprintf( stderr, "modulators must only have a single amplitude: %ld", *nlines );
-            exit( EXIT_FAILURE );
-        }
-        
+        /*get amplitude value*/
+        get_first_string_element( line, tmp2 ) ;                        
         a_node = a_node->amp_next ;
         a_node->amplitude = (float) strtod( tmp2, (char **)NULL ) ;
-                    
-        get_first_string_element( line, tmp2 ) ;            
-                    
-        /*if what comes back is a { then we expect 
-        an amplitude modulator to follow*/
-        
-        if( '{' == *tmp2 ){
-        
-            /*first put the { back on the front of the string*/
-            sprintf( tmp1, "{ %s", line );
-            strcpy( line, tmp1 );
-        
-            /*now get the modulator from the first {} pair*/
-            strcpy( modulator, line );
-            extract_first_bracketed_from_string( modulator, '{', '}' );
-        
-            /*allocate memory for node*/
-            if( ( a_node->a_mod = wnalloc( ) ) == NULL ){
-                fprintf( stderr, "Failure to allocate memory for data structure\n" );
-                exit( EXIT_FAILURE );
-            }
-                        
-            /*parse the sub string*/
-            parse_modulator( a_node->a_mod, modulator, depth+1, nlines, format );
-                
-            /*remove that modulator*/
-        
-            chop_out_first_bracketed_from_string( line, '{', '}' );
-        
-            if( a_node->amp_next != NULL ) get_first_string_element( line, tmp2 );
-        }                
+
+        /*get amplitude modulator*/
+        a_node->a_mod=setup_modulator(line,depth,nlines,format);
                     
         if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
             fprintf( stderr,"amplitude at top level must be <1 and >0\n" );
@@ -509,6 +390,59 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
 
 }
 
+
+struct wave_node * setup_modulator(line, depth, nlines, format)
+char *line;
+unsigned long depth;
+long int *nlines; 
+PCM_fmt_chnk *format;
+{
+
+    char    tmp[ 20 ];
+    char    tmp2[ MAX_LINE_LEN + 20 ];
+    char    modulator[ MAX_LINE_LEN ];
+    struct wave_node *node;
+
+    get_first_string_element( line, tmp ) ;
+        
+    /*if what comes back is a { then we expect 
+    a frequency modulator to follow*/        
+    if( '{' == *tmp ){
+        
+        /*first put the { back on the front of the string*/
+        sprintf( tmp, "{ %s", line );
+        strcpy( line, tmp );
+        
+        /*now get the frequency modulator from the first {} pair*/
+        strcpy( modulator, line );
+        extract_first_bracketed_from_string( modulator, '{', '}' );
+        
+        /*allocate memory for node*/
+        if( ( node = wnalloc( ) ) == NULL ){
+            fprintf( stderr, "Failure to allocate memory for data structure\n" );
+            exit( EXIT_FAILURE );
+        }
+                        
+        /*parse the sub string*/
+        parse_modulator( node, modulator, depth+1, nlines, format );
+                
+        /*remove that modulator and get the phase 
+        (which should be next)*/    
+        chop_out_first_bracketed_from_string( line, '{', '}' );
+        
+        /*return the address of the modulator*/
+        return node;
+        
+    }
+
+    /*if we get here, we didn't find a 
+    modulator so put the line back together 
+    and return NULL*/
+    sprintf( tmp2, "%s %s",tmp, line );
+    strcpy( line, tmp2 );
+    return NULL;
+
+}
 
 /*Allocate memory for a waveform node*/
 struct wave_node *wnalloc( void )
@@ -675,16 +609,13 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
 
 /*Error in reading input line*/
-
 void err_bad_line_format( long int l )
 {
     fprintf( stderr, "Bad formatting on line %ld -- exiting\n", l );
     exit( EXIT_FAILURE );
 }
 
-
-/*functions for examing the data structure*/
-
+/*functions for examiinng the data structure*/
 void print_wnode( struct wave_node *wnode, PCM_fmt_chnk *format )
 {
     
@@ -705,7 +636,6 @@ void print_wnode( struct wave_node *wnode, PCM_fmt_chnk *format )
 
     return ;
 }
-
 
 
 /*
