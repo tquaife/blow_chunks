@@ -284,7 +284,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     and could be placed here too.
     */
 
-    /*check {} are balanced at top level*/
+    /*check {} are balanced at current depth*/
     strcpy( tmp1, line ) ;                
     if( chop_out_bracketed_from_string( tmp1, '{', '}' ) < 0 ){
         fprintf( stderr, "ill formed {} on line %ld\n", *nlines );
@@ -385,12 +385,21 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
             
     }
 
-
     return( 0 );
-
 }
 
 
+/*
+Determines whether there is a modulator in the input
+string and, if so, allocates memory for it and calls
+parse_modulator() to do further processing.
+
+Is called from, and calls, parse_modulator(), which
+makes for a slightly complex recursion, but simplifies 
+the code in parse_modulator significantly.
+
+Should only be called from parse_modulator().
+*/
 struct wave_node * setup_modulator(line, depth, nlines, format)
 char *line;
 unsigned long depth;
@@ -443,32 +452,6 @@ PCM_fmt_chnk *format;
     return NULL;
 
 }
-
-/*Allocate memory for a waveform node*/
-struct wave_node *wnalloc( void )
-{
-    //return ( struct wave_node *) malloc( sizeof( struct wave_node ) );
-    struct wave_node *node;
-    node = ( struct wave_node *) malloc( sizeof( struct wave_node ) );
-    node->rnd_mem=0.0;
-    return node;
-}
-
-/*Allocate memory for an amplitude node*/
-struct ampl_node *analloc( void )
-{
-    return ( struct ampl_node *) malloc( sizeof( struct ampl_node ) ) ; 
-}
-
-
-/*Allocate memory for an variable node*/
-struct variable_node *vnalloc( void )
-{
-    return ( struct variable_node *) malloc( sizeof( struct variable_node ) ) ; 
-}
-
-
-
 
 void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
                                     long int pos, long int nwaves, float *sample_value )
@@ -533,7 +516,6 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         /*apply master volume here*/
         tmp*=node->master_volume;        
         
-
         /*apply fast faders here*/ 
         if( pos<(pos_start+num_fade_samples ) )
             tmp*=pos_local/(float)num_fade_samples;  
@@ -549,7 +531,6 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
                 *(sample_value + i) += tmp * a_node->amplitude \
                                            * ((a_node->a_mod->amp_list->amplitude \
                                            * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos_local))/2.));
-
             }else{
                 *(sample_value + i) += tmp * a_node->amplitude ;
             }
@@ -559,14 +540,11 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         node=node->next;        
     }    
 
-
-
     /*scale the resulting values correctly*/    
     for( i=0; i<fmt_chunk->Channels ; i++ )
         *(sample_value + i) = *(sample_value + i)/(float)nwaves ;
     
     return;
-    
 }
 
 
@@ -606,6 +584,29 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
 }
 
+
+/*Allocate memory for a waveform node*/
+struct wave_node *wnalloc( void )
+{
+    //return ( struct wave_node *) malloc( sizeof( struct wave_node ) );
+    struct wave_node *node;
+    node = ( struct wave_node *) malloc( sizeof( struct wave_node ) );
+    node->rnd_mem=0.0;
+    return node;
+}
+
+/*Allocate memory for an amplitude node*/
+struct ampl_node *analloc( void )
+{
+    return ( struct ampl_node *) malloc( sizeof( struct ampl_node ) ) ; 
+}
+
+
+/*Allocate memory for an variable node*/
+struct variable_node *vnalloc( void )
+{
+    return ( struct variable_node *) malloc( sizeof( struct variable_node ) ) ; 
+}
 
 
 /*Error in reading input line*/
