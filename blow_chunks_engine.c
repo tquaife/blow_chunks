@@ -201,6 +201,12 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
             fprintf( stderr, "ill formed {} on line %ld\n", *nlines );
             exit( EXIT_FAILURE );
         }
+
+        /*Replace envelopes, i.e. within <>*/
+        if( replace_bracketed_in_string_with_char( tmp1, '<', '>', '!' ) < 0 ){
+            fprintf( stderr, "ill formed <> on line %ld\n", *nlines );
+            exit( EXIT_FAILURE );
+        }
         
         /*count number of fields*/
         while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
@@ -223,7 +229,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         /*===============================================
         Now read the input file into the data structure
         =================================================*/ 
-
         if( *nwaves==0 ){
             if( ( node = wnalloc(  ) ) == NULL ){        
                 fprintf( stderr, "Failure to allocate memory for data structure\n" );
@@ -290,6 +295,13 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         fprintf( stderr, "ill formed {} on line %ld\n", *nlines );
         exit( EXIT_FAILURE );
     }            
+    
+    /*Replace envelopes, i.e. within <>*/
+    if( replace_bracketed_in_string_with_char( tmp1, '<', '>', '!' ) < 0 ){
+        fprintf( stderr, "ill formed <> on line %ld\n", *nlines );
+         exit( EXIT_FAILURE );
+    }
+
                 
     /*modulators only have a single amplitude*/
     while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
@@ -327,10 +339,12 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         }
     }
 
-    /*first pad { and } with white space to make them 
+    /*first pad {, }, < and > with white space to make them 
     come out separately from get_first_string_element*/
     pad_char_in_str_with_char( line, '{', ' ', MAX_LINE_LEN );
     pad_char_in_str_with_char( line, '}', ' ', MAX_LINE_LEN );
+    pad_char_in_str_with_char( line, '<', ' ', MAX_LINE_LEN );
+    pad_char_in_str_with_char( line, '>', ' ', MAX_LINE_LEN );
         
     /*determine the waveform and get function*/        
     get_first_string_element( line, wfunc ) ;
@@ -340,16 +354,39 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     }
 
     /* get the frequency*/
-    get_first_string_element( line, tmp2 ) ;
-    node->frequency = (float) strtod( tmp2, (char **)NULL ) ;
+    node->frequency = get_scalar_or_read_envelope(line,&(node->use_frq_env),\
+                      &(node->n_frq_env_points),node->frq_env_times,node->frq_env_vals);
+    
+    /*checking prints - comment out, but do not delete 
+    until everything checked and working*/
+    fprintf(stderr,"FREQUENCY:\n%f\n",node->frequency);
+    fprintf(stderr,"%d %d\n",node->use_frq_env,node->n_frq_env_points);
+    for(int i=0;i<node->n_frq_env_points;i++)
+        fprintf(stderr,"%f ",node->frq_env_times[i]);
+    if(node->n_frq_env_points>0)fprintf(stderr,"\n");
+    for(int i=0;i<node->n_frq_env_points;i++)
+        fprintf(stderr,"%f ",node->frq_env_vals[i]);
+    if(node->n_frq_env_points>0)fprintf(stderr,"\n");
 
     /*get the frequency modulator*/
     node->f_mod=setup_modulator(line,depth,nlines,format);
 
     /* get the phase*/
-    get_first_string_element( line, tmp2 );    
-    node->phase = (float) strtod( tmp2, (char **)NULL ) ;
-                
+    node->phase = get_scalar_or_read_envelope(line,&(node->use_phs_env),\
+                      &(node->n_phs_env_points),node->phs_env_times,node->phs_env_vals);
+
+    /*checking prints - comment out, but do not delete 
+    until everything checked and working*/
+    fprintf(stderr,"PHASE:\n%f\n",node->phase);
+    fprintf(stderr,"%d %d\n",node->use_phs_env,node->n_phs_env_points);
+    for(int i=0;i<node->n_phs_env_points;i++)
+        fprintf(stderr,"%f ",node->phs_env_times[i]);
+    if(node->n_phs_env_points>0)fprintf(stderr,"\n");
+    for(int i=0;i<node->n_phs_env_points;i++)
+        fprintf(stderr,"%f ",node->phs_env_vals[i]);
+    if(node->n_phs_env_points>0)fprintf(stderr,"\n");
+    exit(1);
+
     /*get the phase modulator*/                     
     node->p_mod=setup_modulator(line,depth,nlines,format);
 
@@ -387,6 +424,93 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
 
     return( 0 );
 }
+
+
+float get_scalar_or_read_envelope(line, use_envelope, n_env_points, env_times, env_vals)
+char   *line;
+char   *use_envelope;
+int    *n_env_points; 
+float  *env_times; 
+float  *env_vals;
+{
+
+    char    tmp1[ 50 ];
+    char    tmp2[ 50 ];
+    char    *x;
+    float  scalar;
+
+    *use_envelope=0;
+    *n_env_points=0;
+
+    get_first_string_element( line, tmp1 ) ;
+        
+    /*if what comes back is a { then we expect 
+    a frequency modulator to follow*/        
+    if( '<' == *tmp1 ){
+        *use_envelope=1;
+        while( get_first_string_element( line, tmp1 ) ){
+            if( '>' == *tmp1 ){
+                if( *n_env_points >= 1){
+                    return(0.);
+                }else{
+                    fprintf(stderr, "error: found empty envelope, exiting\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            pad_char_in_str_with_char( tmp1, ':', ' ', MAX_LINE_LEN );
+            
+            /*get the time field*/
+            get_first_string_element( tmp1, tmp2 );
+            env_times[*n_env_points]=(float)strtod(tmp2, &x);
+            if(*x!=0){
+                fprintf(stderr, "error: could not read floating point number: %s\n",tmp2);
+                exit(EXIT_FAILURE);
+            } 
+
+            /*skip the ':' char*/
+            get_first_string_element( tmp1, tmp2 );
+
+            /*get the value field*/
+            get_first_string_element( tmp1, tmp2 );
+            env_vals[*n_env_points]=(float)strtod(tmp2, &x);
+            if(*x!=0){
+                fprintf(stderr, "error: could not read floating point number: %s\n",tmp2);
+                exit(EXIT_FAILURE);
+            } 
+            
+            /*count the number of envelope points*/
+            (*n_env_points)++;
+            
+            /*check times are in order (i.e. always increasing)*/
+            if(*n_env_points>1){
+                if((env_times[*n_env_points-1])<(env_times[*n_env_points-2])){
+                    fprintf(stderr, "error: times in envelope out of order: %f %f\n", \
+                            env_times[*n_env_points-2], env_times[*n_env_points-1]);
+                    exit(EXIT_FAILURE);             
+                }
+            }
+        }
+        
+        /*shouldn't be possible to get here as the 
+        balance of < and > has already been checked,
+        but if we do, send an error message and barf
+        */
+        fprintf(stderr, "error: reached end of line whilst reading envelope: %s\n",tmp1);
+        exit(EXIT_FAILURE);
+    }
+
+    /*if we get here we should have found
+    a scalar with a floating point value,
+    so return that*/
+    scalar=(float)strtod(tmp1, &x);
+    if(*x!=0){
+        fprintf(stderr, "error: could not read floating point number: %s\n",tmp1);
+        exit(EXIT_FAILURE);
+    } 
+    return(scalar);
+}
+
 
 
 /*

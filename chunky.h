@@ -14,6 +14,7 @@
 
 
 #define MAX_LINE_LEN 400
+#define MAX_ENVELOPE_POINTS 40
 #define WAVE_FORMAT_PCM 0x0001
 #define FAST_FADE_MS 5
 
@@ -72,15 +73,26 @@ rnd generator*/
 
 struct	wave_node {
 		float				(*func)( );
+
 		float				frequency;
+		char                use_frq_env;
+		int                 n_frq_env_points;
+		float               frq_env_times[MAX_ENVELOPE_POINTS];
+		float               frq_env_vals[MAX_ENVELOPE_POINTS];
 		float				f;
 		struct wave_node	*f_mod;	
+
 		float				phase;
+		char                use_phs_env;
+		int                 n_phs_env_points;
+		float               phs_env_times[MAX_ENVELOPE_POINTS];
+		float               phs_env_vals[MAX_ENVELOPE_POINTS];
 		struct wave_node	*p_mod;
+
 		struct ampl_node	*amp_list;
 		struct wave_node	*next;
 		
-		/*sequencer valriables*/
+		/*sequencer variables*/
 		float               master_volume ;
 		float               start_time;
 		float               duration;
@@ -96,21 +108,12 @@ each channel.
 
 struct 	ampl_node {
 		float				amplitude;
+		float               amp_env_times[MAX_ENVELOPE_POINTS];
+		float               amp_env_vals[MAX_ENVELOPE_POINTS];
 		struct	wave_node	*a_mod;
 		struct	ampl_node	*amp_next;
 		};
 	
-/*
-The linked list to store the envelopes in
-***** THIS IS NOT CURRENTLY USED ******
-*/
-
-struct envl_node  {
-		float				samps ;
-		float				value ;
-		struct envl_node	*next ;
-		} ;
-
 
 /*
 Control structure for passing 
@@ -164,6 +167,8 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth,
 struct wave_node * setup_modulator(char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format);
 
 
+float get_scalar_or_read_envelope(char *, char *, int *, float *, float *);
+
 float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
 
@@ -198,6 +203,7 @@ char is_string_blank( char *s );
 char strip_comments( char *l, char c );
 char get_first_string_element( char *line, char *element );
 int	 pad_char_in_str_with_char( char *string, char target, char pad, int max_str_len );
+int  replace_bracketed_in_string_with_char( char *string, char open_ch, char close_ch, char repl_ch );
 int  parse_maths( char * string );
 
 /*variable parsing*/

@@ -139,6 +139,72 @@ char    close_ch ;
 }
 
 
+/*
+** -------------------------------------
+** replace_bracketed_in_string_with_char
+** -------------------------------------
+*//*
+Chops out any thing from a string which is contained between
+an opening and a closing char and then replace it with a
+specified character.
+
+Return values:
+>=0: the return value represents the number of bracket pairs
+-1: badly placed or too many closing brackets
+-2: more open brackets than close brackets
+
+*/
+int     replace_bracketed_in_string_with_char( string, open_ch, close_ch, repl_ch )
+char    *string ;
+char    open_ch ;
+char    close_ch ;
+char    repl_ch ;
+{
+
+    int      exit_code=0;
+    int      n_open=0;
+    int      n_close=0;
+    int      j=0, i=0;
+    char     tmp[ MAX_LINE_LEN ]; 
+    
+    strcpy( tmp, string );
+    
+    while( *( tmp + j ) != '\0' ){
+    
+        if( *( tmp + j ) == open_ch ){ 
+            *( string + i++ ) = repl_ch;
+            n_open++ ; 
+            j++;
+        }
+    
+        /*copy string if outside brackets*/
+        if( n_open == n_close )
+            *( string + i++ ) = *( tmp + j ) ;
+            
+        if( *( tmp + j ) == close_ch ) n_close++ ; 
+    
+        /*if n_close is greater than n_open
+        the input line is badly formed*/
+        if( n_close > n_open ){
+            exit_code = -1 ;
+            i--;
+            break ;
+        }             
+        j++;    
+    }
+    
+    /*NULL terminate string*/
+    *( string + i ) = '\0' ;
+    
+    if( n_open == n_close ) exit_code = n_open ;
+    else if( n_open > n_close ) exit_code = -2 ;
+    
+    return( exit_code );
+}
+
+
+
+
 
 
 /*
@@ -163,11 +229,10 @@ char    close_ch ;
 {
 
     int      exit_code=0;
-    int        n_open=0;
-    int        n_close=0;
-    int        j=0, i=0;
+    int      n_open=0;
+    int      n_close=0;
+    int      j=0, i=0;
     char     tmp[ MAX_LINE_LEN ]; 
-    
     
     strcpy( tmp, string );
     
@@ -183,16 +248,12 @@ char    close_ch ;
     
         /*if n_close is greater than n_open
         the input line is badly formed*/
-        
         if( n_close > n_open ){
             exit_code = -1 ;
             i--;
             break ;
-        } 
-            
-            
-        j++;
-    
+        }             
+        j++;    
     }
     
     /*NULL terminate string*/
