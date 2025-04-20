@@ -108,6 +108,8 @@ each channel.
 
 struct 	ampl_node {
 		float				amplitude;
+		char                use_amp_env;
+		int                 n_amp_env_points;
 		float               amp_env_times[MAX_ENVELOPE_POINTS];
 		float               amp_env_vals[MAX_ENVELOPE_POINTS];
 		struct	wave_node	*a_mod;

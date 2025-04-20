@@ -255,6 +255,8 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         (*nwaves)++;
 
     }
+    fprintf(stderr,"remember to remove exit statement in %s at line %d!\n",__FILE__,__LINE__+1);
+    exit(1);
     return( top_node );
 } 
 
@@ -371,6 +373,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     /*get the frequency modulator*/
     node->f_mod=setup_modulator(line,depth,nlines,format);
 
+
     /* get the phase*/
     node->phase = get_scalar_or_read_envelope(line,&(node->use_phs_env),\
                       &(node->n_phs_env_points),node->phs_env_times,node->phs_env_vals);
@@ -385,15 +388,26 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     for(int i=0;i<node->n_phs_env_points;i++)
         fprintf(stderr,"%f ",node->phs_env_vals[i]);
     if(node->n_phs_env_points>0)fprintf(stderr,"\n");
-    exit(1);
 
     /*get the phase modulator*/                     
     node->p_mod=setup_modulator(line,depth,nlines,format);
 
     /*Get channel 1 amplitude*/
-    get_first_string_element( line, tmp2 );    
     a_node = node->amp_list ;
-    a_node->amplitude = (float) strtod( tmp2, (char **)NULL ) ;
+    a_node->amplitude = get_scalar_or_read_envelope(line,&(a_node->use_amp_env),\
+                      &(a_node->n_amp_env_points),a_node->amp_env_times,a_node->amp_env_vals);
+
+
+    /*checking prints - comment out, but do not delete 
+    until everything checked and working*/
+    fprintf(stderr,"AMPLITUDE CH1:\n%f\n",a_node->amplitude);
+    fprintf(stderr,"%d %d\n",a_node->use_amp_env,a_node->n_amp_env_points);
+    for(int i=0;i<a_node->n_amp_env_points;i++)
+        fprintf(stderr,"%f ",a_node->amp_env_times[i]);
+    if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
+    for(int i=0;i<a_node->n_amp_env_points;i++)
+        fprintf(stderr,"%f ",a_node->amp_env_vals[i]);
+    if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
     
     /*This is in place of the sanity check function*/
     if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
@@ -408,9 +422,23 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     while( a_node->amp_next != NULL ){
         
         /*get amplitude value*/
-        get_first_string_element( line, tmp2 ) ;                        
         a_node = a_node->amp_next ;
-        a_node->amplitude = (float) strtod( tmp2, (char **)NULL ) ;
+        //get_first_string_element( line, tmp2 ) ;                        
+        //a_node->amplitude = (float) strtod( tmp2, (char **)NULL ) ;
+        a_node->amplitude = get_scalar_or_read_envelope(line,&(a_node->use_amp_env),\
+                          &(a_node->n_amp_env_points),a_node->amp_env_times,a_node->amp_env_vals);
+
+
+        /*checking prints - comment out, but do not delete 
+        until everything checked and working*/
+        fprintf(stderr,"AMPLITUDE CH N:\n%f\n",a_node->amplitude);
+        fprintf(stderr,"%d %d\n",a_node->use_amp_env,a_node->n_amp_env_points);
+        for(int i=0;i<a_node->n_amp_env_points;i++)
+            fprintf(stderr,"%f ",a_node->amp_env_times[i]);
+        if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
+        for(int i=0;i<a_node->n_amp_env_points;i++)
+            fprintf(stderr,"%f ",a_node->amp_env_vals[i]);
+        if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
 
         /*get amplitude modulator*/
         a_node->a_mod=setup_modulator(line,depth,nlines,format);
@@ -618,18 +646,21 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             node=node->next;
             continue ;
         }
-        /*set up f, the value that */    
+        /*set up f, the value that is 
+        used for frequency modulation*/    
         node->f = node->frequency * pos_local * 2*M_PI / (float) fmt_chunk->SampleRate ;
         
         /*frequency modulation*/
         if( node->f_mod != NULL )
-            local_node->f = node->f + node->f_mod->amp_list->amplitude * modulate_waveform( node->f_mod, fmt_chunk, pos_local ) ;
+            local_node->f = node->f + node->f_mod->amp_list->amplitude \
+                            * modulate_waveform( node->f_mod, fmt_chunk, pos_local ) ;
         else        
             local_node->f = node->f ;
                         
         /*phase modulation*/    
         if( node->p_mod != NULL )
-            local_node->phase = node->phase + node->p_mod->amp_list->amplitude * modulate_waveform( node->p_mod, fmt_chunk, pos_local ) ;
+            local_node->phase = node->phase + node->p_mod->amp_list->amplitude \
+                                * modulate_waveform( node->p_mod, fmt_chunk, pos_local ) ;
         else        
             local_node->phase = node->phase ;
                 
