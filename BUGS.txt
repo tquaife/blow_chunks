@@ -1,0 +1,19 @@
+Amplitude envelopes working exactly as expected.
+
+Frequency envelopes are weird... first segment sounds great, but the subsequent segments sound wrong.
+!!! Actually, this ^^^ isn't true. The problem is that phase needs to change with the frequency. See:
+
+https://stackoverflow.com/questions/11199509/sine-wave-that-slowly-ramps-up-frequency-from-f1-to-f2-for-a-given-time
+
+
+https://www.mathworks.com/matlabcentral/answers/217746-implementing-a-sine-wave-with-linearly-changing-frequency
+
+
+https://stackoverflow.com/questions/19771328/sine-wave-that-exponentialy-changes-between-frequencies-f1-and-f2-at-given-time?noredirect=1&lq=1
+This one ^^^^
+
+https://en.wikipedia.org/wiki/Frequency_modulation
+
+
+https://en.wikipedia.org/wiki/Phase_modulation
+

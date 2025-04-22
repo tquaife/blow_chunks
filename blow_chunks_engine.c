@@ -256,7 +256,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
 
     }
     fprintf(stderr,"remember to remove exit statement in %s at line %d!\n",__FILE__,__LINE__+1);
-    exit(1);
+    //exit(1);
     return( top_node );
 } 
 
@@ -605,6 +605,43 @@ PCM_fmt_chnk *format;
 
 }
 
+float get_envelope_value(time, n_env_points, env_times, env_vals)
+double time;
+int    n_env_points; 
+float  *env_times; 
+float  *env_vals;
+{
+    float envelope_val=0.0;
+    float x;
+    
+    //fprintf(stderr,"%f %f %f\n",time,env_times[0],env_times[n_env_points-1]);
+    //exit(1);
+    
+    /*if we're before(/after) the start of the specified
+    envelope, return the first(/last) value*/
+    if(time<=env_times[0]) return(env_vals[0]);
+    if(time>env_times[n_env_points-1]) return(env_vals[n_env_points-1]);
+
+    //DEBUGPRINT
+
+
+    /*should only get here if there are
+    at least _two_ points*/
+    for(int i=0;i<(n_env_points-1);i++){
+        if((time>env_times[i]) && (time<=env_times[i+1])){        
+            x=(env_times[i+1]-time)/(env_times[i+1]-env_times[i]);
+            envelope_val=env_vals[i]*x+env_vals[i+1]*(1-x);
+            //fprintf(stderr,"%f %f %d %d\n",time,envelope_val,n_env_points,i);
+            return(envelope_val);
+        }
+    }
+    /*should never get here*/
+    fprintf(stderr,"error: reached end of get_envelope_value() line=%d, file=%s\n",__LINE__,__FILE__);
+    exit(EXIT_FAILURE);
+    return(envelope_val);
+}
+
+
 void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
                                     long int pos, long int nwaves, float *sample_value )
 {
@@ -614,13 +651,13 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     long int    pos_start;
     long int    pos_end;
     long int    pos_local;
+    double      time_local;
     
     struct ampl_node *a_node ;
     struct wave_node *local_node ;
     
     float num_fade_samples = ( FAST_FADE_MS * fmt_chunk->SampleRate ) / 1000.0 ;
-    
-    
+        
     /*allocate local node*/    
     if( ( local_node = wnalloc(   ) ) == NULL ){
         fprintf( stderr, "Failure to allocate memory for data structure\n" );
@@ -646,8 +683,25 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             node=node->next;
             continue ;
         }
-        /*set up f, the value that is 
-        used for frequency modulation*/    
+        
+        /*Evaluate envelopes (if any)*/
+        time_local=pos_local/(float)fmt_chunk->SampleRate;
+        if( node->use_frq_env > 0 )
+            node->frequency = get_envelope_value(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);
+            /*need to change the phase here too*/
+        if( node->use_phs_env > 0 )
+            node->phase = get_envelope_value(time_local,node->n_phs_env_points,node->phs_env_times,node->phs_env_vals);        
+        a_node=node->amp_list ;
+        i=0;
+        do{
+            if(i>0) a_node = a_node->amp_next ;
+            i+=1;
+            if( a_node->use_amp_env > 0 )
+                a_node->amplitude = get_envelope_value(time_local,a_node->n_amp_env_points,a_node->amp_env_times,a_node->amp_env_vals);
+        }while( a_node->amp_next != NULL );
+        
+        /*set up f, the value that is used in the modulator function call
+        (i.e. sin(f) will work, but sin(frequency) a flat line).*/    
         node->f = node->frequency * pos_local * 2*M_PI / (float) fmt_chunk->SampleRate ;
         
         /*frequency modulation*/
@@ -692,6 +746,7 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             i+=1;
         }while( a_node->amp_next != NULL );
 
+        /*move to the next node*/
         node=node->next;        
     }    
 

@@ -36,6 +36,7 @@ float sin_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
     float    sample_value;
     sample_value = sin( node->f + node->phase*2*M_PI );
+    
     return( sample_value );
 }
 
