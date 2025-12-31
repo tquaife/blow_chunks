@@ -74,13 +74,15 @@ rnd generator*/
 struct	wave_node {
 		float				(*func)( );
 
-		float				frequency;
+		float               f;
+		float               frequency;
 		char                use_frq_env;
 		int                 n_frq_env_points;
 		float               frq_env_times[MAX_ENVELOPE_POINTS];
 		float               frq_env_vals[MAX_ENVELOPE_POINTS];
-		float				f;
-		struct wave_node	*f_mod;	
+		//float               fmod_delta ; 
+		float               fenv_integral ;
+		struct wave_node    *f_mod;	
 
 		float				phase;
 		char                use_phs_env;

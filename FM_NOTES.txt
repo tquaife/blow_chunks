@@ -1,0 +1,7 @@
+See correct formula here:
+
+https://thewolfsound.com/fm-synthesis-explained-for-audio-programmers-art-and-science/#proper-fm-formula
+
+BUT.... maybe this isn't what I reallyt want... try this:
+
+https://stackoverflow.com/questions/19771328/sine-wave-that-exponentialy-changes-between-frequencies-f1-and-f2-at-given-time/19777462#19777462

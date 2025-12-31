@@ -1,0 +1,11 @@
+;@sequence 0 3
+;sin <1:110 2:220> 1 1
+
+@sequence 0 1
+sin 220 1 1
+@sequence 1 1
+sin 110 1 1
+@sequence 2 3
+sin <1:110 2:220> 1 1
+@sequence 5 1
+sin 220 1 1
