@@ -261,7 +261,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
 } 
 
 
-
 /*
 This function is the main part of the input file parsing
 code. It chops up the input ascii data into the waveforms
@@ -273,7 +272,6 @@ Still needs work. Usable return values might be nice
 for example. The code could probably also be simplified
 a lot too and error checking on the calls to strtod
 should also be implemented.
-
 */
 int parse_modulator( struct wave_node *node, char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format )
 {
@@ -304,7 +302,6 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
          exit( EXIT_FAILURE );
     }
 
-                
     /*modulators only have a single amplitude*/
     while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
     if( counter > 4 && depth > 0 ){
@@ -614,16 +611,10 @@ float  *env_vals;
     float envelope_val=0.0;
     float x;
     
-    //fprintf(stderr,"%f %f %f\n",time,env_times[0],env_times[n_env_points-1]);
-    //exit(1);
-    
     /*if we're before(/after) the start of the specified
     envelope, return the first(/last) value*/
     if(time<=env_times[0]) return(env_vals[0]);
     if(time>env_times[n_env_points-1]) return(env_vals[n_env_points-1]);
-
-    //DEBUGPRINT
-
 
     /*should only get here if there are
     at least _two_ points*/
@@ -631,7 +622,6 @@ float  *env_vals;
         if((time>env_times[i]) && (time<=env_times[i+1])){        
             x=(env_times[i+1]-time)/(env_times[i+1]-env_times[i]);
             envelope_val=env_vals[i]*x+env_vals[i+1]*(1-x);
-            //fprintf(stderr,"%f %f %d %d\n",time,envelope_val,n_env_points,i);
             return(envelope_val);
         }
     }
@@ -642,8 +632,8 @@ float  *env_vals;
 }
 
 
-void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
-                                    long int pos, long int nwaves, float *sample_value )
+void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
+                           long int pos, long int nwaves, float *sample_value )
 {
 
     float       tmp;
@@ -652,8 +642,6 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     long int    pos_end;
     long int    pos_local;
     double      time_local;
-    double      time_delta = 1./fmt_chunk->SampleRate;
-    double      init_fval;
     
     struct ampl_node *a_node ;
     struct wave_node *local_node ;
@@ -681,36 +669,46 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         pos_end=pos_start+node->duration*fmt_chunk->SampleRate;
         pos_local=pos-pos_start;
         
+        /*move to next node if this one isn't active
+        in this sequence block*/
         if( (pos<pos_start)||(pos>pos_end)){
             node=node->next;
             continue ;
         }
-        
-        /*Evaluate envelopes (if any)*/
+
+        /*time since start of sequence block*/
         time_local=pos_local/(float)fmt_chunk->SampleRate;
+        
+        /*frequency envelope*/
         if( node->use_frq_env==TRUE ){
-            //node->frequency = get_envelope_value(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
-            //init_fval=get_envelope_value(0.0,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);
-            //node->fmod_delta = -node->frequency + get_envelope_value(time_local+time_delta,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);
-            //node->fmod_integral += node->fmod_delta * time_delta ;
-            //node->frequency=init_fval+node->fmod_integral;
-
-            //node->f = node->frequency * pos_local * 2*M_PI / (float) fmt_chunk->SampleRate ;
-
-
             node->fenv_integral += get_envelope_value(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
-
             node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
-
         }else{    
             /*set up f, the value that is used in the modulator function call
             (i.e. sin(f) will work, but sin(frequency) a flat line).*/    
             node->f = node->frequency * pos_local * 2*M_PI / (float) fmt_chunk->SampleRate ;   
         }      
-              
+        /*frequency modulation*/
+        if( node->f_mod != NULL )
+            local_node->f = node->f + node->f_mod->amp_list->amplitude \
+                            * modulate_waveform( node->f_mod, fmt_chunk, pos_local ) ;
+        else        
+            local_node->f = node->f ;
+
+
+        /*phase envelope*/              
         if( node->use_phs_env==TRUE )
             node->phase = get_envelope_value(time_local,node->n_phs_env_points,node->phs_env_times,node->phs_env_vals);        
+
+        /*phase modulation*/    
+        if( node->p_mod != NULL )
+            local_node->phase = node->phase + node->p_mod->amp_list->amplitude \
+                                * modulate_waveform( node->p_mod, fmt_chunk, pos_local ) ;
+        else        
+            local_node->phase = node->phase ;
+
         
+        /*apply amplitude envelopes*/
         a_node=node->amp_list ;
         i=0;
         do{
@@ -719,22 +717,7 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
             if( a_node->use_amp_env > 0 )
                 a_node->amplitude = get_envelope_value(time_local,a_node->n_amp_env_points,a_node->amp_env_times,a_node->amp_env_vals);
         }while( a_node->amp_next != NULL );
-        
-        
-        /*frequency modulation*/
-        if( node->f_mod != NULL )
-            local_node->f = node->f + node->f_mod->amp_list->amplitude \
-                            * modulate_waveform( node->f_mod, fmt_chunk, pos_local ) ;
-        else        
-            local_node->f = node->f ;
                         
-        /*phase modulation*/    
-        if( node->p_mod != NULL )
-            local_node->phase = node->phase + node->p_mod->amp_list->amplitude \
-                                * modulate_waveform( node->p_mod, fmt_chunk, pos_local ) ;
-        else        
-            local_node->phase = node->phase ;
-                
         /*data value prior to any modification
         for its amplitude*/        
         tmp = node->func( local_node, fmt_chunk, pos_local );
@@ -748,7 +731,8 @@ void calculate_data_value(  struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         if( pos>(pos_end-num_fade_samples ) )
             tmp*=(pos_end-pos)/(float)num_fade_samples;  
                 
-        /*apply amplitudes for the individual channels*/    
+        /*apply amplitudes for the individual channels*/
+        /*amplitude modulation is done in this part*/    
         a_node=node->amp_list ;
         i=0;
         do{

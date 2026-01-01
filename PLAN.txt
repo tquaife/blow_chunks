@@ -2,6 +2,8 @@
 
 Envelopes
 - rewrite oscillator parser first [DONE]
+- add exponential envelope for frequency parts
+-- essentially a new version of get_envelope_value()
 
 New oscillators
 - rand square
@@ -14,9 +16,11 @@ Normalise
 - write one waveform at time
 - slower but more robust
 
+Other
+- error checking on strtod calls (and similar)
+
 
 ** Debugging required: 
-
 ??? Probably loads
 
 ** Recently completed
