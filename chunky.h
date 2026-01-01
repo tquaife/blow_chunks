@@ -171,9 +171,9 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth,
 
 struct wave_node * setup_modulator(char *line, unsigned long depth, long int *nlines, PCM_fmt_chnk *format);
 
-
 float get_scalar_or_read_envelope(char *, char *, int *, float *, float *);
 float get_envelope_value(double, int, float*, float *);
+float get_envelope_value_exp(double, int, float*, float *);
 
 float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 

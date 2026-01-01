@@ -356,6 +356,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     
     /*checking prints - comment out, but do not delete 
     until everything checked and working*/
+    /*
     fprintf(stderr,"FREQUENCY:\n%f\n",node->frequency);
     fprintf(stderr,"%d %d\n",node->use_frq_env,node->n_frq_env_points);
     for(int i=0;i<node->n_frq_env_points;i++)
@@ -364,6 +365,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     for(int i=0;i<node->n_frq_env_points;i++)
         fprintf(stderr,"%f ",node->frq_env_vals[i]);
     if(node->n_frq_env_points>0)fprintf(stderr,"\n");
+    */
 
     /*get the frequency modulator*/
     node->f_mod=setup_modulator(line,depth,nlines,format);
@@ -375,6 +377,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
 
     /*checking prints - comment out, but do not delete 
     until everything checked and working*/
+    /*
     fprintf(stderr,"PHASE:\n%f\n",node->phase);
     fprintf(stderr,"%d %d\n",node->use_phs_env,node->n_phs_env_points);
     for(int i=0;i<node->n_phs_env_points;i++)
@@ -383,6 +386,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     for(int i=0;i<node->n_phs_env_points;i++)
         fprintf(stderr,"%f ",node->phs_env_vals[i]);
     if(node->n_phs_env_points>0)fprintf(stderr,"\n");
+    */
 
     /*get the phase modulator*/                     
     node->p_mod=setup_modulator(line,depth,nlines,format);
@@ -395,6 +399,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
 
     /*checking prints - comment out, but do not delete 
     until everything checked and working*/
+    /*
     fprintf(stderr,"AMPLITUDE CH1:\n%f\n",a_node->amplitude);
     fprintf(stderr,"%d %d\n",a_node->use_amp_env,a_node->n_amp_env_points);
     for(int i=0;i<a_node->n_amp_env_points;i++)
@@ -403,6 +408,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     for(int i=0;i<a_node->n_amp_env_points;i++)
         fprintf(stderr,"%f ",a_node->amp_env_vals[i]);
     if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
+    */
     
     /*This is in place of the sanity check function*/
     if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
@@ -426,6 +432,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
 
         /*checking prints - comment out, but do not delete 
         until everything checked and working*/
+        /*
         fprintf(stderr,"AMPLITUDE CH N:\n%f\n",a_node->amplitude);
         fprintf(stderr,"%d %d\n",a_node->use_amp_env,a_node->n_amp_env_points);
         for(int i=0;i<a_node->n_amp_env_points;i++)
@@ -434,6 +441,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         for(int i=0;i<a_node->n_amp_env_points;i++)
             fprintf(stderr,"%f ",a_node->amp_env_vals[i]);
         if(a_node->n_amp_env_points>0)fprintf(stderr,"\n");
+        */
 
         /*get amplitude modulator*/
         a_node->a_mod=setup_modulator(line,depth,nlines,format);
@@ -630,6 +638,43 @@ float  *env_vals;
 }
 
 
+float get_envelope_value_exp(time, n_env_points, env_times, env_vals)
+/** This is the exponential version of the get_envelope_value() 
+function. Used to produce a frequency sweep that will be perceived to
+be linear.
+**/
+double time;
+int    n_env_points; 
+float  *env_times; 
+float  *env_vals;
+{
+    float envelope_val=0.0;
+    float k,x;
+    
+    /*if we're before(/after) the start of the specified
+    envelope, return the first(/last) value*/
+    if(time<=env_times[0]) return(env_vals[0]);
+    if(time>env_times[n_env_points-1]) return(env_vals[n_env_points-1]);
+
+    /*should only get here if there are
+    at least _two_ points*/
+    for(int i=0;i<(n_env_points-1);i++){
+        k=log(env_vals[i+1]/env_vals[i])/(env_times[i+1]-env_times[i]);
+        if((time>env_times[i]) && (time<=env_times[i+1])){        
+            x=(env_times[i+1]-time)/(env_times[i+1]-env_times[i]);
+            envelope_val=env_vals[i]*exp(k*(1-x)*(env_times[i+1]-env_times[i]));
+            return(envelope_val);
+        }
+    }
+    /*should never get here*/
+    fprintf(stderr,"error: reached end of get_envelope_value_exp() line=%d, file=%s\n",__LINE__,__FILE__);
+    exit(EXIT_FAILURE);
+    return(envelope_val);
+}
+
+
+
+
 void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
                            long int pos, long int nwaves, float *sample_value )
 {
@@ -679,7 +724,7 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         
         /*frequency envelope*/
         if( node->use_frq_env==TRUE ){
-            node->fenv_integral += get_envelope_value(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
+            node->fenv_integral += get_envelope_value_exp(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
             node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
         }else{    
             /*set up f, the value that is used in the modulator function call
@@ -779,7 +824,7 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
     /*frequency envelope*/
     if( node->use_frq_env==TRUE ){
-        node->fenv_integral += get_envelope_value(time,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
+        node->fenv_integral += get_envelope_value_exp(time,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
         node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
     }else{    
         node->f = node->frequency * pos * 2*M_PI / (float) fmt_chunk->SampleRate ;   
@@ -812,6 +857,7 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
     if( node->amp_list->a_mod != NULL )
         mod *= ( node->amp_list->a_mod->amp_list->amplitude * 0.5 * ( 1 + modulate_waveform(node->amp_list->a_mod, fmt_chunk, pos) ) );
     
+    free(local_node);
     return( mod ) ;
 
 }

@@ -1,9 +1,8 @@
 ** Main todo list:
 
-Envelopes
+Envelopes [DONE]
 - rewrite oscillator parser first [DONE]
-- add exponential envelope for frequency parts
--- essentially a new version of get_envelope_value()
+- add exponential envelope for frequency parts [DONE]
 
 New oscillators
 - rand square
