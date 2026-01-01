@@ -255,8 +255,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         (*nwaves)++;
 
     }
-    fprintf(stderr,"remember to remove exit statement in %s at line %d!\n",__FILE__,__LINE__+1);
-    //exit(1);
     return( top_node );
 } 
 
@@ -714,7 +712,7 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         do{
             if(i>0) a_node = a_node->amp_next ;
             i+=1;
-            if( a_node->use_amp_env > 0 )
+            if( a_node->use_amp_env == TRUE )
                 a_node->amplitude = get_envelope_value(time_local,a_node->n_amp_env_points,a_node->amp_env_times,a_node->amp_env_vals);
         }while( a_node->amp_next != NULL );
                         
@@ -763,28 +761,51 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 {
 
     float mod = 0.00 ;
+    float time;
+    struct ampl_node *a_node ;
     struct wave_node *local_node ;
 
-    /*allocate local node*/
-    
+    /*allocate local node*/    
     if( ( local_node = wnalloc(   ) ) == NULL ){
         fprintf( stderr, "Failure to allocate memory for data structure\n" );
         exit( EXIT_FAILURE );            
     }
 
-    node->f = node->frequency * pos * 2 * M_PI / (float) fmt_chunk->SampleRate  ;
+    /*calculate the time in seconds, note that
+    the value of pos passed from calculate_data_value()
+    is the _local_ time, i.e. the time from the start
+    of the sequence block */
+    time=pos/(float)fmt_chunk->SampleRate;
 
+    /*frequency envelope*/
+    if( node->use_frq_env==TRUE ){
+        node->fenv_integral += get_envelope_value(time,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
+        node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
+    }else{    
+        node->f = node->frequency * pos * 2*M_PI / (float) fmt_chunk->SampleRate ;   
+    }      
+
+    /*frequency modulation*/
     if( node->f_mod != NULL )
         local_node->f = node->f + node->f_mod->amp_list->amplitude * modulate_waveform( node->f_mod, fmt_chunk, pos ) ;
     else        
         local_node->f = node->f ;
-        
-    /*phase modulations*/    
+
+    /*phase envelope*/              
+    if( node->use_phs_env==TRUE )
+        node->phase = get_envelope_value(time,node->n_phs_env_points,node->phs_env_times,node->phs_env_vals);        
+
+    /*phase modulation*/    
     if( node->p_mod != NULL )
         local_node->phase = node->phase + node->p_mod->amp_list->amplitude * modulate_waveform( node->p_mod, fmt_chunk, pos ) ;
     else        
         local_node->phase = node->phase ;
             
+    /*amplitude envelope*/
+    a_node=node->amp_list ;
+    if( a_node->use_amp_env == TRUE )
+        a_node->amplitude = get_envelope_value(time,a_node->n_amp_env_points,a_node->amp_env_times,a_node->amp_env_vals);
+
     mod = node->func( local_node, fmt_chunk, pos );
 
     /*amplitude modulation*/

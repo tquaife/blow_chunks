@@ -16,12 +16,19 @@ Normalise
 - write one waveform at time
 - slower but more robust
 
+Shape parameter (?)
+- add a forth argument for each oscillator that controls "shape"
+- needs to be controlled by envelopes and modulations same as everything else
+
 Other
 - error checking on strtod calls (and similar)
 
 
 ** Debugging required: 
-??? Probably loads
+
+- check phase envelopes and modulations
+- is FM working as expected?
+- maths not working inside envelopes (tripped up by ":")
 
 ** Recently completed
 

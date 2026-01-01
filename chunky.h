@@ -19,6 +19,7 @@
 #define FAST_FADE_MS 5
 
 #define DEBUGPRINT fprintf(stderr,"here: %s %d\n",__FILE__,__LINE__);
+#define DEBUGPRINTEXIT fprintf(stderr,"here: %s %d\n",__FILE__,__LINE__);exit(0);
 
 
 
