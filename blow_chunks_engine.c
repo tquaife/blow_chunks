@@ -679,7 +679,8 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
                            long int pos, long int nwaves, float *sample_value )
 {
 
-    float       tmp;
+    float       sample_tmp;
+    float       debug_tmp;
     long        i;
     long int    pos_start;
     long int    pos_end;
@@ -701,7 +702,7 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     for( i=0; i<fmt_chunk->Channels ; i++ )
         *(sample_value + i) = 0.00 ;
     
-    tmp = 0.00 ;
+    sample_tmp = 0.00 ;
     
     /*loop through the data structure*/
     while( node != NULL ){
@@ -724,7 +725,9 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         
         /*frequency envelope*/
         if( node->use_frq_env==TRUE ){
-            node->fenv_integral += get_envelope_value_exp(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
+            node->fenv_integral += get_envelope_value_exp(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);
+            //debug_tmp = get_envelope_value_exp(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
+            //fprintf(stderr,"%f %f\n",debug_tmp,node->fenv_integral);
             node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
         }else{    
             /*set up f, the value that is used in the modulator function call
@@ -763,16 +766,16 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
                         
         /*data value prior to any modification
         for its amplitude*/        
-        tmp = node->func( local_node, fmt_chunk, pos_local );
+        sample_tmp = node->func( local_node, fmt_chunk, pos_local );
 
         /*apply master volume here*/
-        tmp*=node->master_volume;        
+        sample_tmp*=node->master_volume;        
         
         /*apply fast faders here*/ 
         if( pos<(pos_start+num_fade_samples ) )
-            tmp*=pos_local/(float)num_fade_samples;  
+            sample_tmp*=pos_local/(float)num_fade_samples;  
         if( pos>(pos_end-num_fade_samples ) )
-            tmp*=(pos_end-pos)/(float)num_fade_samples;  
+            sample_tmp*=(pos_end-pos)/(float)num_fade_samples;  
                 
         /*apply amplitudes for the individual channels*/
         /*amplitude modulation is done in this part*/    
@@ -781,11 +784,11 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         do{
             if(i>0) a_node = a_node->amp_next ;
             if( a_node->a_mod != NULL ){
-                *(sample_value + i) += tmp * a_node->amplitude \
+                *(sample_value + i) += sample_tmp * a_node->amplitude \
                                            * ((a_node->a_mod->amp_list->amplitude \
                                            * (1+modulate_waveform( a_node->a_mod, fmt_chunk, pos_local))/2.));
             }else{
-                *(sample_value + i) += tmp * a_node->amplitude ;
+                *(sample_value + i) += sample_tmp * a_node->amplitude ;
             }
             i+=1;
         }while( a_node->amp_next != NULL );
@@ -797,6 +800,9 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     /*scale the resulting values correctly*/    
     for( i=0; i<fmt_chunk->Channels ; i++ )
         *(sample_value + i) = *(sample_value + i)/(float)nwaves ;
+    
+    /*free up local memory*/
+    free(local_node);
     
     return;
 }
