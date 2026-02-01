@@ -44,7 +44,6 @@
 #include<chunky.h>
 
 
-
 /*
 ** ------------------------------------------
 ** Calculate the ABPS and the block alignment

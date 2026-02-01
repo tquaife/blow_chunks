@@ -13,7 +13,7 @@
 #endif
 
 
-#define MAX_LINE_LEN 400
+#define MAX_LINE_LEN 1000
 #define MAX_ENVELOPE_POINTS 40
 #define WAVE_FORMAT_PCM 0x0001
 #define FAST_FADE_MS 5

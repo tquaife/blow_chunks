@@ -82,6 +82,7 @@ int    main( int argc, char **argv )
         ++i;
     }    
         
+    free(sample_value);    
     return( EXIT_SUCCESS );    
 }
 

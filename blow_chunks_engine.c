@@ -1,6 +1,7 @@
 #include<chunky.h>
 #include<note_lookup.h>
 
+
 /*
 Build the initial variable list of notes names and values
 from the  note_lookup  header file
@@ -20,12 +21,10 @@ struct variable_node *build_variable_list(  )
             var_node=var_node->next;
             var_node->next=NULL;
         }
-        
         var_node->key=(char*) malloc(MAX_LINE_LEN*sizeof(char));
         var_node->value=(char*) malloc(MAX_LINE_LEN*sizeof(char));
         strcpy(var_node->key, note_lookup[i].key);
         strcpy(var_node->value, note_lookup[i].value);
-
     }
 
     return top_node;
@@ -73,7 +72,7 @@ int proc_commands( char *string,  struct control *ctrl ){
             fprintf(stderr, "exiting: @volume should not be less than 0.0: %s\n", token1);
             exit(1);
         }else if(ctrl->master_volume>1.0){
-            fprintf(stderr, "warning: setting @volume greater than 1.0 will end in tears!: %s\n", token1);
+            fprintf(stderr, "warning: setting @volume greater than 1.0 may cause clipping: %s\n", token1);
         }        
         
     /**************************
@@ -202,11 +201,13 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
             exit( EXIT_FAILURE );
         }
 
+
         /*Replace envelopes, i.e. within <>*/
         if( replace_bracketed_in_string_with_char( tmp1, '<', '>', '!' ) < 0 ){
             fprintf( stderr, "ill formed <> on line %ld\n", *nlines );
             exit( EXIT_FAILURE );
         }
+        
         
         /*count number of fields*/
         while( get_first_string_element( tmp1, tmp2 ) ) counter++ ;
@@ -225,7 +226,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
                 fprintf( stderr, "Error on line %ld of input data: inconsistent number of fields\n", *nlines );
                 exit( EXIT_FAILURE );
         }
-        
+                
         /*===============================================
         Now read the input file into the data structure
         =================================================*/ 
@@ -235,6 +236,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
                 exit( EXIT_FAILURE );
             }        
             top_node=node;
+        
         }else{
             if( ( node->next = wnalloc(  ) ) == NULL ){        
                 fprintf( stderr, "Failure to allocate memory for data structure\n" );
@@ -247,7 +249,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         node->master_volume=ctrl->master_volume;    
         node->start_time=ctrl->seq_start;    
         node->duration=ctrl->seq_duration;    
-                
+                              
         /* parse the string and set up the data structure*/
         parse_modulator( node, line, 0, nlines, format );    
          
@@ -255,6 +257,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         (*nwaves)++;
 
     }
+    
     return( top_node );
 } 
 
@@ -342,7 +345,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     pad_char_in_str_with_char( line, '}', ' ', MAX_LINE_LEN );
     pad_char_in_str_with_char( line, '<', ' ', MAX_LINE_LEN );
     pad_char_in_str_with_char( line, '>', ' ', MAX_LINE_LEN );
-        
+                
     /*determine the waveform and get function*/        
     get_first_string_element( line, wfunc ) ;
     if ((node->func=assign_oscillator_function(wfunc))==NULL){
@@ -368,7 +371,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     a_node = node->amp_list ;
     a_node->amplitude = get_scalar_or_read_envelope(line,&(a_node->use_amp_env),\
                       &(a_node->n_amp_env_points),a_node->amp_env_times,a_node->amp_env_vals);
-    
+        
     /*This is in place of the sanity check function*/
     if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
         fprintf( stderr,"amplitude at top level must be <1 and >0 (line %ld)\n", *nlines );
@@ -438,7 +441,7 @@ float  *env_vals;
             get_first_string_element( tmp1, tmp2 );
             env_times[*n_env_points]=(float)strtod(tmp2, &x);
             if(*x!=0){
-                fprintf(stderr, "error: could not read floating point number: %s\n",tmp2);
+                fprintf(stderr, "error: could not read floating point number: %s, (file:%s line:%d)\n",tmp2,__FILE__,__LINE__);
                 exit(EXIT_FAILURE);
             } 
 
@@ -449,7 +452,7 @@ float  *env_vals;
             get_first_string_element( tmp1, tmp2 );
             env_vals[*n_env_points]=(float)strtod(tmp2, &x);
             if(*x!=0){
-                fprintf(stderr, "error: could not read floating point number: %s\n",tmp2);
+                fprintf(stderr, "error: could not read floating point number: %s, (file:%s line:%d)\n",tmp2,__FILE__,__LINE__);
                 exit(EXIT_FAILURE);
             } 
             
@@ -479,12 +482,12 @@ float  *env_vals;
     so return that*/
     scalar=(float)strtod(tmp1, &x);
     if(*x!=0){
-        fprintf(stderr, "error: could not read floating point number: %s\n",tmp1);
+        fprintf(stderr, "error: could not read floating point number: %s, (file:%s line:%d)\n",tmp1,__FILE__,__LINE__);
         exit(EXIT_FAILURE);
     } 
+    
     return(scalar);
 }
-
 
 
 /*
@@ -615,15 +618,11 @@ float  *env_vals;
     return(envelope_val);
 }
 
-
-
-
 void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
                            long int pos, long int nwaves, float *sample_value )
 {
 
     float       sample_tmp;
-    float       debug_tmp;
     long        i;
     long int    pos_start;
     long int    pos_end;
@@ -635,12 +634,6 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     
     float num_fade_samples = ( FAST_FADE_MS * fmt_chunk->SampleRate ) / 1000.0 ;
         
-    /*allocate local node*/    
-    if( ( local_node = wnalloc(   ) ) == NULL ){
-        fprintf( stderr, "Failure to allocate memory for data structure\n" );
-        exit( EXIT_FAILURE );            
-    }
-
     /*init sample array at 0*/
     for( i=0; i<fmt_chunk->Channels ; i++ )
         *(sample_value + i) = 0.00 ;
@@ -649,6 +642,12 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
     
     /*loop through the data structure*/
     while( node != NULL ){
+
+        /*allocate local node*/    
+        if( ( local_node = wnalloc(   ) ) == NULL ){
+            fprintf( stderr, "Failure to allocate memory for data structure\n" );
+            exit( EXIT_FAILURE );            
+        }
         
         /*could do this when the initial data structures
         are set up - will save some comp time*/
@@ -668,8 +667,10 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
         
         /*frequency envelope*/
         if( node->use_frq_env==TRUE ){
-            node->fenv_integral += get_envelope_value_exp(time_local,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);
-            node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
+            node->fenv_integral += get_envelope_value_exp(time_local,node->n_frq_env_points,
+                                  node->frq_env_times,node->frq_env_vals)/ (float) fmt_chunk->SampleRate;
+            node->fenv_integral = node->fenv_integral-floor(node->fenv_integral);
+            node->f = node->fenv_integral * 2*M_PI  ;
         }else{    
             /*set up f, the value that is used in the modulator function call
             (i.e. sin(f) will work, but sin(frequency) a flat line).*/    
@@ -736,14 +737,16 @@ void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk,
 
         /*move to the next node*/
         node=node->next;        
+
+        /*free up local node memory*/
+        free(local_node);
+
     }    
 
     /*scale the resulting values correctly*/    
     for( i=0; i<fmt_chunk->Channels ; i++ )
         *(sample_value + i) = *(sample_value + i)/(float)nwaves ;
     
-    /*free up local memory*/
-    free(local_node);
     
     return;
 }
@@ -771,8 +774,11 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 
     /*frequency envelope*/
     if( node->use_frq_env==TRUE ){
-        node->fenv_integral += get_envelope_value_exp(time,node->n_frq_env_points,node->frq_env_times,node->frq_env_vals);           
-        node->f = node->fenv_integral * 2*M_PI / (float) fmt_chunk->SampleRate ;
+        node->fenv_integral += get_envelope_value_exp(time,node->n_frq_env_points,
+                            node->frq_env_times,node->frq_env_vals)/ (float) fmt_chunk->SampleRate;
+        node->fenv_integral = node->fenv_integral-floor(node->fenv_integral);
+        node->f = node->fenv_integral * 2*M_PI  ;
+
     }else{    
         node->f = node->frequency * pos * 2*M_PI / (float) fmt_chunk->SampleRate ;   
     }      
@@ -810,21 +816,32 @@ float modulate_waveform( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long i
 }
 
 
-/*Allocate memory for a waveform node*/
+/*Allocate memory for a waveform node
+and do some set up*/
 struct wave_node *wnalloc( void )
 {
-    //return ( struct wave_node *) malloc( sizeof( struct wave_node ) );
     struct wave_node *node;
+
     node = ( struct wave_node *) malloc( sizeof( struct wave_node ) );
     node->rnd_mem=0.0;
     node->fenv_integral=0.0;
+    node->f_mod=NULL;
+    node->p_mod=NULL;
+    node->amp_list=NULL;
+    node->next=NULL;
+
     return node;
 }
 
 /*Allocate memory for an amplitude node*/
 struct ampl_node *analloc( void )
 {
-    return ( struct ampl_node *) malloc( sizeof( struct ampl_node ) ) ; 
+
+    struct ampl_node *anode;
+    anode = ( struct ampl_node *) malloc( sizeof( struct ampl_node ) ) ; 
+    anode->a_mod=NULL;
+    anode->amp_next=NULL;
+    return(anode);
 }
 
 

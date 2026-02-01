@@ -186,10 +186,12 @@ You can also use \texttt{play} to directly preview the sound without writing to 
 echo sin 220 1 1|./blow_chunks|play -
 \end{lstlisting}
 
+\noindent
+Note, however, that the audio will skip if you try this with big input files.
 
 \section{Basic \blowchunks instructions}
 
-What's going on in the command described in the previous section? The command being passed to \blowchunks is ``\texttt{sin 220 1 1}'', 
+What's going on in the command described in the previous section? The text being passed to \blowchunks is ``\texttt{sin 220 1 1}'', 
 which is an example of a oscillator, the main building block of sounds in \blowchunks. Most oscillator commands look something like:
 
 \begin{lstlisting}
@@ -197,7 +199,7 @@ oscillator_name frequency phase volume
 \end{lstlisting}
 
 \noindent
-The different oscillators are described later in this document, but valid examples include \texttt{sin}, \texttt{sqr} and \texttt{tri} which are a sine wave, a square wave and a triangular wave, respectively. They all take the same arguments. The \texttt{frequency} argument controls the pitch, \texttt{phase} controls the phase (but will not have a noticeable effect in these simple examples) and volume controls the volume of the sound. All of these arguments can take on any floating point value, including negative numbers, but typically \texttt{frequency} is a value above 0.0Hz and less than 22000.0Hz, and \texttt{phase} and \texttt{volume} will have values between 0.0 and 1.0.
+The different oscillators are described later in this document, but valid examples include \texttt{sin}, \texttt{sqr} and \texttt{sup} which are a sine wave, a square wave and a rising sawtooth wave, respectively. They all take the same arguments. The \texttt{frequency} argument controls the pitch, \texttt{phase} controls the phase (but will not have a noticeable effect in these simple examples) and volume controls the volume of the sound. All of these arguments can take on any floating point value, including negative numbers, but typically \texttt{frequency} is a value above 0.0Hz and less than 22000.0Hz, and \texttt{phase} and \texttt{volume} will have values between 0.0 and 1.0.
 
 
 \section{Modulating modulators}
@@ -216,10 +218,10 @@ echo sin 220 {sin 356 1 1} 1 1|./blow_chunks >afm356.wav
 \end{lstlisting}
 
 \noindent
-It is possible to keep nesting modulators indefinitely, at least within the constraints of your computer's memory, which will be a \emph{lot} of modulators on modern computers. In the following example, we will use a low-frequency triangular-wave oscillator to modulate the amplitude of the FM effect. Not that there's nothing special about an oscillator that makes it ``low frequency''; it is just a standard \blowchunks oscillator with a pitch that is below our hearing range. In this example, we will use a frequency of 1Hz:
+It is possible to keep nesting modulators indefinitely, at least within the constraints of your computer's memory, which will be a \emph{lot} of modulators on modern computers. In the following example, we will use a low-frequency sawtooth oscillator to modulate the amplitude of the FM effect. In this example, we will use a frequency of 1Hz:
 
 \begin{lstlisting}
-echo sin 220 {sin 356 1 1{tri 1 1 1}} 1 1|./blow_chunks >afm356_fade.wav
+echo sin 220 {sin 356 1 1{sup 1 1 1}} 1 1|./blow_chunks >afm356_fade.wav
 \end{lstlisting}
 
 \noindent
@@ -230,10 +232,10 @@ Have a listen and convince yourself of how the above command is being used to ge
 
 \section{Basic sound duration control}
 
-At this point, you may want to make sounds be a bit longer than one second, so you can explore the effects of different low frequency modulators (LFOs). For basic sounds, this can be controlled using the optional argument \texttt{-d} to \blowchunks. This creates the previous sound for 2.5 seconds we can do the following:
+At this point, you may want to make sounds be a bit longer than one second, so you can explore the effects of different low frequency modulators. For basic sounds, this can be controlled using the optional argument \texttt{-d} to \blowchunks. This creates the previous sound for 2.5 seconds we can do the following:
 
 \begin{lstlisting}
-echo sin 220 {sin 356 1 1{tri 1 1 1}} 1 1|./blow_chunks -d 2.5 > afm356_fade_2p5s.wav
+echo sin 220 {sin 356 1 1{sup 1 1 1}} 1 1|./blow_chunks -d 2.5 > afm356_fade_2p5s.wav
 \end{lstlisting}
 
 
@@ -263,7 +265,7 @@ Note that \blowchunks supports comments. Anything after a ``;'' character until 
 
 Top level oscillators, i.e. those not enclosed in curly brackets ``\{\}'' can posses more than one volume value. By specifying two volume values the resulting sound file is in stereo (the resulting wav file will have two \emph{channels}). Note that all top level oscillators must have the same number of volume values or \blowchunks will throw an error and exit. Similarly, all oscillators being used as modulators can only have a single volume value. In principle \blowchunks supports an arbitrary number of channels, so it is possible to create quadraphonic sounds etc, but you will only hear these effects if you have an audio set up that can play them.
 
-The simplest example if to pan a sound to one channel:
+The simplest example is to pan a sound to one channel:
 
 \begin{lstlisting}
 ;C panned hard left
@@ -277,7 +279,7 @@ By modulating the volume channels it's possible to generate effects in stereo. I
 sin 220 1 1 {sin 1 1 1} 1 {sin 1 0.5 1}
 \end{lstlisting}
 
-It's also possible to use LFO modulated channels to create arpeggiators. A good choice of LFO for this pupose is the smoothed square wave modulator \texttt{sqx}. The following example is a stereo arpeggiated C major chord:
+It's also possible to use low frequency modulated channels to create arpeggiators. A good choice of modulator for this purpose is the smoothed square wave modulator \texttt{sqx}. The following example is a stereo arpeggiated C major chord:
 
 \begin{lstlisting}
 ;C major stereo arpeggiator
@@ -290,7 +292,7 @@ sn3 392.0 1 1 {sqx 1 0.33 1} 1 {sqx 1 0.83 1}
 
 \section{Variables}
 
-\blowchunks supports variables, including user defined and predefined ones (which can be overwritten by the user). The strength of user defined variables is largely in conjunction with other parts of the \blowchunks interface, but the predefined variables have some more obvious applications. The frequency values of notes in the twelve tone equal temperament tuning with A referenced to 440Hz are all stored as variables. All variables begin with the ``\$'' character, and the frequency values can be retrived by typing, for example, \$A2 (which is 110Hz). Flats are specified with a ``b'' character (e.g. \$Ab2) and sharps with an ``s'' character (e.g. \$As2). That means we can rewrite input files so that the contain the note names, which is far more convenient. The C major chord example now becomes:
+\blowchunks supports variables, including user defined and predefined ones (which can be overwritten by the user). The strength of user defined variables is largely in conjunction with other parts of the \blowchunks interface, but the predefined variables have some more obvious applications. The frequency values of notes in the twelve tone equal temperament tuning with A referenced to 440Hz are all stored as variables. All variables begin with the ``\$'' character, and the frequency values can be retrived by typing, for example, \$A2 (which is 110Hz). Flats are specified with a ``b'' character (e.g. \$Ab2) and sharps with an ``s'' character (e.g. \$As2). That means we can rewrite input files so that they contain the note names, which is far more convenient. The C major chord example now becomes:
 
 \begin{lstlisting}
 ;C major stereo arpeggiator, using in-built 
@@ -301,7 +303,7 @@ sn3 $E4 1 1 {sqx 1 0.16 1} 1 {sqx 1 0.67 1}
 sn3 $G4 1 1 {sqx 1 0.33 1} 1 {sqx 1 0.83 1}
 \end{lstlisting}
 
-To provide and example of the user defined variables, imagine you wanted to experiment with the speed of the arpeggiation in the previous example. It would be necessary to change the frequency of each of the LFO modulator in turn the the same thing. In more complex sounds this could become onerous and a likely source of error. Instead, we can set variable to hold that value, as follows: 
+To provide and example of the user defined variables, imagine you wanted to experiment with the speed of the arpeggiation in the previous example. It would be necessary to change the frequency of each of the low frequency modulators in turn to the same value. In more complex sounds this could become onerous and a likely source of error. Instead, we can set variable to hold that value, as follows: 
  
 \begin{lstlisting}
 ;A slower C major stereo arpeggiator, using in-built 
@@ -313,7 +315,7 @@ sn3 $E4 1 1 {sqx $LfoSpeed 0.16 1} 1 {sqx $LfoSpeed 0.67 1}
 sn3 $G4 1 1 {sqx $LfoSpeed 0.33 1} 1 {sqx $LfoSpeed 0.83 1}
 \end{lstlisting}
 
-It's good practice to name variables is a meaningful way, but any combination of alphanumeric characters are permitted. No spaces or punctuation can be used, and the variables are case sensitive.
+It's good practice to name variables in a meaningful way, but any combination of alphanumeric characters are permitted. No spaces or punctuation can be used, and the variable names are case sensitive.
 
 
 \section{The @sequence command}
@@ -371,9 +373,9 @@ timeStep=$timeStep+$beatLen
 sn3 $C4 1 1 1 
 \end{lstlisting}
 
-This is a little more effort to set up, but now there is a single variable (\texttt{beatLen}) which is the only thing needed to change the speed of the arpeggio. For longer files, this can save a lot of work and help avoid errors.
+This is a little more effort to set up but now there is a single variable (\texttt{beatLen}) which is the only thing needed to change the speed of the arpeggio. For longer files, this can save a lot of work and help avoid errors.
 
-The order in which mathematical operations are carried out are multiplication and division first followed by addition and subtraction. \blowchunks doesn't support parentheses in mathematical expressions, and the mathematical operators must appear between to numbers (or variables which contain numbers).
+The order in which mathematical operations are carried out are multiplication and division first followed by addition and subtraction. \blowchunks doesn't support parentheses in mathematical expressions, and the mathematical operators must appear between two numbers (or variables which contain numbers).
 
 
 
