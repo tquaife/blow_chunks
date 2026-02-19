@@ -19,23 +19,19 @@
 */
 
 void setup_PCM_fmt_chunk( PCM_fmt_chnk *fmt_chunk )
-{
-        
-	/* - Calculate block align and avg bytes per second - */
-                        
-        fmt_chunk->AvgBytesPerSec=fmt_chunk->Channels\
-                                 *fmt_chunk->SampleRate\
-                                 *(float)fmt_chunk->PCM_bps/8.0;
+{        
+    /* - Calculate block align and avg bytes per second - */                       
+    fmt_chunk->AvgBytesPerSec=fmt_chunk->Channels\
+                             *fmt_chunk->SampleRate\
+                             *(float)fmt_chunk->PCM_bps/8.0;
                                      
-        fmt_chunk->BlockAlign=fmt_chunk->Channels\
+    fmt_chunk->BlockAlign=fmt_chunk->Channels\
                              *(float)fmt_chunk->PCM_bps/8.0;
 
-	fmt_chunk->FormatTag=WAVE_FORMAT_PCM;
+    fmt_chunk->FormatTag=WAVE_FORMAT_PCM;
 
 	return;
-
 }
-
 
 
 void setup_chunk_headers( RIFF_hdr *wav_header, chunk_hdr *fmt_header, chunk_hdr *data_header,\
@@ -61,81 +57,53 @@ void setup_chunk_headers( RIFF_hdr *wav_header, chunk_hdr *fmt_header, chunk_hdr
 			 +data_header->length ;
 			
 	return;
-
-
-
 }
 
-void write_wav_header( RIFF_hdr *wav_header )
+void write_wav_header( FILE *outfp, RIFF_hdr *wav_header )
 {
-
-	fwrite( wav_header, sizeof( RIFF_hdr ), 1, stdout );
+	fwrite( wav_header, sizeof( RIFF_hdr ), 1, outfp );
 	return;
-
 }
 
 
-
-void write_PCM_fmt_chunk( PCM_fmt_chnk *fmt_chunk )
+void write_PCM_fmt_chunk( FILE *outfp, PCM_fmt_chnk *fmt_chunk )
 {
-
-	fwrite( fmt_chunk, sizeof( PCM_fmt_chnk ), 1, stdout );
+	fwrite( fmt_chunk, sizeof( PCM_fmt_chnk ), 1, outfp );
 	return;
-
 }
 
 
-
-void write_chunk_hdr( chunk_hdr *header )
+void write_chunk_hdr( FILE *outfp, chunk_hdr *header )
 {
-
-	fwrite( header, sizeof( chunk_hdr ), 1, stdout );
+	fwrite( header, sizeof( chunk_hdr ), 1, outfp );
 	return;
-
 }
 
 
-
-
-void write_pcm_data_sample( PCM_fmt_chnk *fmt_chunk, float *sample_value )
+void write_pcm_data_sample( FILE *outfp, PCM_fmt_chnk *fmt_chunk, float *sample_value )
 {
-
 	short int 	bps16_value;
 	char	 	bps8_value;
 	long		i ;
 
-	if( fmt_chunk->PCM_bps == 16 ){
-	
+	if( fmt_chunk->PCM_bps == 16 ){	
 		for( i=0; i<fmt_chunk->Channels; i++ ){
-	
 			bps16_value = *(sample_value + i) * 32767;
-			fwrite( &bps16_value , sizeof( short int ), 1, stdout );
-		
+			fwrite( &bps16_value , sizeof( short int ), 1, outfp );
 		}
 	
 	}else if( fmt_chunk->PCM_bps == 8 ){
-	
-		
 		for( i=0; i<fmt_chunk->Channels; i++ ){
-
 			bps8_value = *(sample_value + i) * 127;
-			fwrite( &bps8_value , sizeof( char ), 1, stdout );
-			
+			fwrite( &bps8_value , sizeof( char ), 1, outfp );
 		}
 
-	
-	}else{
-	
-		fprintf( stderr, "Usupported bits per sample: %d\n", fmt_chunk->PCM_bps );
+	}else{	
+		fprintf( stderr, "Unsupported bits per sample: %d\n", fmt_chunk->PCM_bps );
 		exit( EXIT_FAILURE );
-	
 	}
 
-
-
-
 	return;
-
 }
 
 

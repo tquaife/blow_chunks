@@ -1,0 +1,62 @@
+note=440
+fp1=$note
+fp2=$note*1*3/2
+fp3=$note*2
+fp4=$note*2*3/2
+fp5=$note*2*5/4
+fp6=$note*2*9/8
+fp7=$note*3
+fp8=$note*3*3/2
+fp9=$note*3*5/4
+fp10=$note*3*9/8
+fp11=$note*4
+
+
+vp1=1.0
+vp2=0.6
+vp3=0.9
+vp4=0.8
+vp5=0.3
+vp6=0.1
+vp7=0.2
+vp8=0.05
+vp9=0.05
+vp10=0.05
+vp11=0.1
+
+tAttack=0.06
+tSustain=1.0+$tAttack
+tRelease=1.0+$tSustain
+
+env1=<0:0 $tAttack:$vp1 $tSustain:$vp1 $tRelease:0.0>
+env2=<0:0 $tAttack:$vp2 $tSustain:$vp2 $tRelease:0.0>
+env3=<0:0 $tAttack:$vp3 $tSustain:$vp3 $tRelease:0.0>
+env4=<0:0 $tAttack:$vp4 $tSustain:$vp5 $tRelease:0.0>
+env5=<0:0 $tAttack:$vp5 $tSustain:$vp9 $tRelease:0.0>
+env6=<0:0 $tAttack:$vp6 $tSustain:$vp9 $tRelease:0.0>
+env7=<0:0 $tAttack:$vp7 $tSustain:$vp9 $tRelease:0.0>
+env8=<0:0 $tAttack:$vp8 $tSustain:$vp9 $tRelease:0.0>
+env9=<0:0 $tAttack:$vp9 $tSustain:$vp9 $tRelease:0.0>
+env10=<0:0 $tAttack:$vp10 $tSustain:$vp10 $tRelease:0.0>
+env11=<0:0 $tAttack:$vp11 $tSustain:$vp11 $tRelease:0.0>
+
+;@print $env1
+
+wave=sin
+
+;@volume 2
+@sequence 0 $tRelease
+
+$wave $fp1 1 $env1
+$wave $fp2 1 $env2
+$wave $fp3 1 $env3
+$wave $fp4 1 $env4
+$wave $fp5 1 $env5
+$wave $fp6 1 $env6
+$wave $fp7 1 $env7
+$wave $fp8 1 $env8
+$wave $fp9 1 $env9
+$wave $fp10 1 $env10
+$wave $fp11 1 $env11
+
+

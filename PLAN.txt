@@ -7,7 +7,7 @@ Envelopes [DONE]
 New oscillators
 - rand square
 - sqrt sin
-- triangle wave
+- triangle wave [DONE]
 - swap old sawtooths for trig functions
 
 Normalise

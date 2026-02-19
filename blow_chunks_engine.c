@@ -157,7 +157,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
     node = NULL ;        
     top_node = NULL ;        
         
-    while( fgets( line, MAX_LINE_LEN, stdin ) != NULL ){
+    while( fgets( line, MAX_LINE_LEN, ctrl->input ) != NULL ){
     
         (*nlines)++;
 
@@ -823,7 +823,8 @@ struct wave_node *wnalloc( void )
     struct wave_node *node;
 
     node = ( struct wave_node *) malloc( sizeof( struct wave_node ) );
-    node->rnd_mem=0.0;
+    node->mem1=0.0;
+    node->mem2=0.0;
     node->fenv_integral=0.0;
     node->f_mod=NULL;
     node->p_mod=NULL;

@@ -641,7 +641,9 @@ int assign_variables( char *string,  struct variable_node *var_node )
         string[k++]=tmp[i-1];  
         i++;
     }
-    string[k]='\0';
+
+    fprintf(stderr,"possible problem in variable parsing in %s at line %d\n",__FILE__,__LINE__); 
+    string[k-2]='\0';
     
     /*check if var exists*/
     /*and, if so, replace*/

@@ -1,0 +1,11 @@
+note=220
+
+f1=$note
+fm1=$note
+
+@sequence 0 1
+
+sin $f1 {sin $fm1 1 2} 1 <0:0 0.1:1 0.9:1 1:0>
+sin $f1 {sin $fm1 1 2} 1 <0:0 0.1:1 0.9:1 1:0>
+
+

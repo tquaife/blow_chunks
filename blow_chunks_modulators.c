@@ -18,6 +18,10 @@ float(* assign_oscillator_function(char *wfunc))(struct wave_node *node, PCM_fmt
         return &sn3_wave;
     else if( ! strcmp( wfunc, "sn5" ) )
         return &sn5_wave;
+    else if( ! strcmp( wfunc, "tri" ) )
+        return &tri_wave;
+    else if( ! strcmp( wfunc, "trx" ) )
+        return &trx_wave;
     else if( ! strcmp( wfunc, "wht" ) )
         return &wht_wave;
     else if( ! strcmp( wfunc, "rsq" ) )
@@ -64,6 +68,26 @@ float sqx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
     sample_value = 2./M_PI*atan(sin( node->f + node->phase*2*M_PI )/delta);
     return( sample_value );
 }
+
+
+/* --- a triangular wave --- */
+float tri_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+
+    float    sample_value;
+    sample_value = 2./M_PI*asin(sin( node->f + node->phase*2*M_PI ));
+    return( sample_value );
+}
+
+
+/* --- a smoothed triangular wave --- */
+float trx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
+
+    float    sample_value;
+    sample_value = 2./M_PI*asin(sin( node->f + node->phase*2*M_PI )*0.975);
+    return( sample_value );
+}
+
+
 
 /* --- square wave --- */
 float sqr_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
@@ -132,12 +156,15 @@ float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
     node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );   
     
-    sample_value=node->rnd_mem;
+    sample_value=node->mem1;
     if(r<(node->frequency/fmt_chunk->SampleRate)) sample_value=s;
-    node->rnd_mem = sample_value;
+    node->mem1 = sample_value;
 
     return( sample_value );
 }
+
+
+
 
 
 

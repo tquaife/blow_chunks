@@ -29,6 +29,11 @@ int    main( int argc, char **argv )
     ctrl.seq_duration=default_duration;
     ctrl.total_length=default_duration;
     ctrl.verbose=FALSE;
+    ctrl.input=stdin;
+    ctrl.input_is_file=FALSE;
+    ctrl.output=stdout;
+    ctrl.output_is_file=FALSE;
+
     
     /*parse command line*/
     clparser( argc, argv, &ctrl, &fmt_chunk );
@@ -43,7 +48,7 @@ int    main( int argc, char **argv )
 
     /* Set up the data structures */    
     if ( ( top_node = setup_waveform_data_structures( &nlines, &nwaves, &fmt_chunk, var_node, &ctrl ) ) == NULL ){
-        fprintf(stderr, "%s: no wave data found at stdin\n", argv[ 0 ] );
+        fprintf(stderr, "%s: no wave data found on stdin or in input file\n", argv[ 0 ] );
         exit( EXIT_FAILURE );
     } 
 
@@ -51,8 +56,8 @@ int    main( int argc, char **argv )
     if(ctrl.verbose)print_data(top_node,0);
 
     /* - Check output is being redirected - */
-    if( isatty( fileno( stdout ) ) ){
-        fprintf( stderr, "%s: output must be redirected\nexiting\n", argv[ 0 ] );
+    if( isatty( fileno( ctrl.output ) ) ){
+        fprintf( stderr, "%s: output must be redirected or file specified --- exiting\n", argv[ 0 ] );
         exit( EXIT_FAILURE );                
     }        
             
@@ -67,10 +72,10 @@ int    main( int argc, char **argv )
     setup_chunk_headers( &wav_header, &fmt_header, &data_header, &fmt_chunk, ctrl.total_length );
     
     /* Write .wav file up to start of data */
-    write_wav_header( &wav_header );
-    write_chunk_hdr( &fmt_header );    
-    write_PCM_fmt_chunk( &fmt_chunk );
-    write_chunk_hdr( &data_header );
+    write_wav_header( ctrl.output, &wav_header );
+    write_chunk_hdr( ctrl.output, &fmt_header );    
+    write_PCM_fmt_chunk( ctrl.output, &fmt_chunk );
+    write_chunk_hdr( ctrl.output, &data_header );
     
     num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
     
@@ -78,9 +83,13 @@ int    main( int argc, char **argv )
     num_samples = ctrl.total_length * fmt_chunk.SampleRate ; 
     while( i < num_samples ){        
         calculate_data_value( top_node, &fmt_chunk, i, nwaves, sample_value );
-        write_pcm_data_sample( &fmt_chunk, sample_value );
+        write_pcm_data_sample( ctrl.output, &fmt_chunk, sample_value );
         ++i;
     }    
+    
+
+    if(ctrl.input_is_file == TRUE)fclose(ctrl.input); 
+    if(ctrl.output_is_file == TRUE)fclose(ctrl.output); 
         
     free(sample_value);    
     return( EXIT_SUCCESS );    
@@ -111,6 +120,16 @@ PCM_fmt_chnk *format;
             else if( !strncasecmp( argv[ i ],"--sample_rate",5 ) || !strcasecmp(argv[ i ],"-s") )                 
                     format->SampleRate = (long)atoi( argv[ ++i ] );                    
 
+            else if( !strncasecmp( argv[ i ],"--output_file",7 ) || !strcasecmp(argv[ i ],"-o") )                 
+            {                          
+                     ctrl->output = fopen(argv[ ++i ],"w");
+                     ctrl->output_is_file = TRUE ;
+            }
+            else if( !strncasecmp( argv[ i ],"--input_file",7 ) || !strcasecmp(argv[ i ],"-i") )                 
+            {                          
+                     ctrl->input = fopen(argv[ ++i ],"r");
+                     ctrl->input_is_file = TRUE ;
+            }
             else if( !strncasecmp( argv[ i ],"--verbose",5 ) || !strcasecmp(argv[ i ],"-v") )                 
                     ctrl->verbose=TRUE;
                                        
@@ -132,6 +151,8 @@ void usage(char *binary_name)
         fprintf(stderr, "--duration|-d arg\t\twhere arg is the duration in seconds [float]\n" );
         fprintf(stderr, "--bits_per_sample|-b arg\twhere arg is the bits per sample of the wav file [int]\n" );
         fprintf(stderr, "--sample_rate|-s arg\t\twhere arg is the sample rate of the wav file in Hertz [int]\n" );
+        fprintf(stderr, "--input_file|-i arg\t\tread the input from the file specified by arg [string]\n" );
+        fprintf(stderr, "--output_file|-o arg\t\twrite to the file specified by arg [string]\n" );
         fprintf(stderr, "--verbose|-v\t\t\tprint additional messages to the stderr\n" );
         fprintf(stderr, "--usage|-u\t\t\tprint the usage message (this one!) to the stderr\n" );
 

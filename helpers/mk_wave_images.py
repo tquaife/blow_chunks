@@ -43,7 +43,8 @@ def mk_fig(bc_command,bc_command2=None,freq=200,n_show=5):
 if __name__=="__main__":
 
      freq="220"
-     oscils=["sin","sup","sdn", "sn3","sn5","sqr","sqx","sut"]     
+     oscils=["sin","sup","sdn", "sn3","sn5","sqr","sqx","sut","tri"]     
+     oscils=["tri","trx"]     
 
      #basic oscillator plots
      for osc in oscils:

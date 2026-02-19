@@ -101,7 +101,8 @@ struct	wave_node {
 		float               duration;
 		
 		/*experimental*/
-		float               rnd_mem;
+		double               mem1;
+		double               mem2;
 		};
 		
 /*
@@ -121,15 +122,21 @@ struct 	ampl_node {
 	
 
 /*
-Control structure for passing 
+Control structure
 */
 
 struct control  {
-		float				master_volume ;
-		float				seq_start;
-		float				seq_duration;
-		float               total_length;
-		int                 verbose;
+		float    master_volume ;
+		float    seq_start;
+		float    seq_duration;
+		float    total_length;
+		int      verbose;
+		
+		FILE     *input;
+		char     input_is_file;
+		FILE     *output;
+		char     output_is_file;
+		
 		} ;
 
 
@@ -152,10 +159,12 @@ struct variable_node {
 void setup_PCM_fmt_chunk( PCM_fmt_chnk *fmt_chunk );
 void setup_chunk_headers( RIFF_hdr *wav_header, chunk_hdr *fmt_header, chunk_hdr *data_header,\
 			      PCM_fmt_chnk *fmt_chunk, float duration );
-void write_wav_header( RIFF_hdr *wav_header );
-void write_PCM_fmt_chunk( PCM_fmt_chnk *fmt_chunk );
-void write_chunk_hdr( chunk_hdr *header );
-void write_pcm_data_sample( PCM_fmt_chnk *fmt_chunk, float *sample_value );
+
+void write_wav_header( FILE *, RIFF_hdr *wav_header );
+void write_PCM_fmt_chunk( FILE *, PCM_fmt_chnk *fmt_chunk );
+void write_chunk_hdr( FILE *, chunk_hdr *header );
+void write_pcm_data_sample( FILE *, PCM_fmt_chnk *fmt_chunk, float *sample_value );
+
 
 /*Blow chunks functions*/
 void calculate_data_value( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, 
@@ -196,6 +205,8 @@ float sut_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sdn_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn3_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float sn5_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float tri_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
+float trx_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float wht_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos );
 
