@@ -144,23 +144,16 @@ float wht_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
 
 /* --- random square --- */
-/*this is experimental doesn't
-quite work as planned yet*/
 float rsq_wave( struct wave_node *node, PCM_fmt_chnk *fmt_chunk, long int pos ){
 
-    float    sample_value ;
-    float    r, s;
+    float    r;
     
-    s = ( 2.0 * rand() / (float) RAND_MAX ) - 1.0;
     r = rand() / (float) RAND_MAX;
-
-    node->frequency = fmt_chunk->SampleRate * node->f / ( pos * 2 * M_PI );   
     
-    sample_value=node->mem1;
-    if(r<(node->frequency/fmt_chunk->SampleRate)) sample_value=s;
-    node->mem1 = sample_value;
-
-    return( sample_value );
+    if(node->mem1<0.1&&node->mem1>-0.1)node->mem1=1.;
+    if(r>node->phase)node->mem1*=-1.;
+    
+    return( node->mem1 );
 }
 
 

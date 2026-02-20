@@ -201,7 +201,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
             exit( EXIT_FAILURE );
         }
 
-
         /*Replace envelopes, i.e. within <>*/
         if( replace_bracketed_in_string_with_char( tmp1, '<', '>', '!' ) < 0 ){
             fprintf( stderr, "ill formed <> on line %ld\n", *nlines );
@@ -256,6 +255,7 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         /*track the total number of lines*/        
         (*nwaves)++;
 
+        //fprintf(stderr,"&&&&&&&&  "); DEBUGPRINT
     }
     
     return( top_node );
@@ -353,9 +353,17 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         exit( EXIT_FAILURE );
     }
 
+    
+    //fprintf(stderr,"]]top of parse %f %ld   ",node->frequency,depth); DEBUGPRINT
+
     /* get the frequency*/
     node->frequency = get_scalar_or_read_envelope(line,&(node->use_frq_env),\
                       &(node->n_frq_env_points),node->frq_env_times,node->frq_env_vals);
+
+    
+    //fprintf(stderr,"***** %f %ld ",node->frequency,depth);DEBUGPRINT
+    //fprintf(stderr,"///// %s %ld ",line,depth);DEBUGPRINT
+
     
     /*get the frequency modulator*/
     node->f_mod=setup_modulator(line,depth,nlines,format);
@@ -371,18 +379,23 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     a_node = node->amp_list ;
     a_node->amplitude = get_scalar_or_read_envelope(line,&(a_node->use_amp_env),\
                       &(a_node->n_amp_env_points),a_node->amp_env_times,a_node->amp_env_vals);
-        
+
     /*This is in place of the sanity check function*/
     if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
         fprintf( stderr,"amplitude at top level must be <1 and >0 (line %ld)\n", *nlines );
         exit( EXIT_FAILURE );
     }
         
+    //fprintf(stderr,"}}}}}}}---- %ld %s  ",*nlines,line);DEBUGPRINT    
     /*get the amplitude modulator for channel 1)*/                     
     a_node->a_mod=setup_modulator(line,depth,nlines,format);
+    //fprintf(stderr,"}}}}}}}---- %ld %s ",*nlines,line);DEBUGPRINT    
+
 
     /*now loop over the other channels*/
     while( a_node->amp_next != NULL ){
+        
+        //fprintf(stderr,"(*&*&^*&+-+-+-+-+-===");DEBUGPRINT
         
         /*get amplitude value*/
         a_node = a_node->amp_next ;
@@ -420,6 +433,7 @@ float  *env_vals;
     *n_env_points=0;
 
     get_first_string_element( line, tmp1 ) ;
+
         
     /*if what comes back is a { then we expect 
     a frequency modulator to follow*/        
@@ -482,10 +496,12 @@ float  *env_vals;
     so return that*/
     scalar=(float)strtod(tmp1, &x);
     if(*x!=0){
-        fprintf(stderr, "error: could not read floating point number: %s, (file:%s line:%d)\n",tmp1,__FILE__,__LINE__);
+        fprintf(stderr, "error: could not read floating point number: %s (file:%s line:%d)\n",tmp1,__FILE__,__LINE__);
+        fprintf(stderr, "other garbage: %s\n",tmp2);
         exit(EXIT_FAILURE);
     } 
     
+    //fprintf(stderr,"+++++ %f ",scalar); DEBUGPRINT
     return(scalar);
 }
 
@@ -512,6 +528,30 @@ PCM_fmt_chnk *format;
     char    tmp2[ MAX_LINE_LEN + 20 ];
     char    modulator[ MAX_LINE_LEN ];
     struct wave_node *node;
+
+    /*The next line guards against an error where
+    some of the older information is picked
+    up - not 100% why this happens (which is 
+    far from ideal!) but this is a robust
+    work around.
+    
+    UPDATE 20/02/26: The error occurs because, if 
+    the strong in line is blank, then 
+    get_first_string_element() does nothing to tmp.
+    As a consequence, if there is any garbage in 
+    tmp it can, potentially, get read as a
+    modulator.
+    
+    Possible better work around is to initialise
+    the string in the following way:
+    
+    memset(tmp, '\0', sizeof(tmp));
+    
+    ***OR*** (possibly better:)
+
+    if(get_first_string_element(line, tmp)==0) return NULL ;
+    */
+    if( is_string_blank( line ) ) return NULL;
 
     get_first_string_element( line, tmp ) ;
         
@@ -550,6 +590,8 @@ PCM_fmt_chnk *format;
     and return NULL*/
     sprintf( tmp2, "%s %s",tmp, line );
     strcpy( line, tmp2 );
+    
+    //fprintf(stderr,"~~~~~~~~  ");DEBUGPRINT
     return NULL;
 
 }
