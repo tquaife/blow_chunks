@@ -485,7 +485,7 @@ version 1.1 bug fixed by adding null termination
 see (*) below.
 
 [NB - this was written for an app at work which
-is why it probably looks a damn sight smarter
+is why it probably looks a sight smarter
 then a lot of the rest of blow chunks!]
 */
 
@@ -498,20 +498,17 @@ char    *element;
 
     /* Check that we are not already */
     /* at the end of the line        */
-
     if( *line == '\0' ) return( 0 );
     
     /* Skip leading white space and */
     /* return zero if end of string */
-    /* is encountered               */
-    
+    /* is encountered               */   
     while( isspace( *(line+i) ) ) 
         if( *(line+( ++i )) == '\0' ) return( 0 );
     
     
     /* Put the first block of non white 
        space characters into element */
-    
     while( ! isspace( *(line+i) ) ){
         if( ( element[j++] = *(line+(i++) ) ) == '\0' ){
         
@@ -521,14 +518,11 @@ char    *element;
         }
     }
     
-    
-    /*put a NULL terminator in at j - (*) */
-    
+    /*put a NULL terminator in at j - (*) */    
     element[ j ] = '\0' ;
     
     /* Copy remainder of line into the beggining */
     /* of itself */
- 
     for( j=0; ( *(line+j)=*(line+i) ) != '\0' ; ++j, ++i );
         
     return( 1 );
