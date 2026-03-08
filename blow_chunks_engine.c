@@ -255,7 +255,6 @@ struct wave_node *setup_waveform_data_structures( long int *nlines, long int *nw
         /*track the total number of lines*/        
         (*nwaves)++;
 
-        //fprintf(stderr,"&&&&&&&&  "); DEBUGPRINT
     }
     
     return( top_node );
@@ -354,15 +353,9 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
     }
 
     
-    //fprintf(stderr,"]]top of parse %f %ld   ",node->frequency,depth); DEBUGPRINT
-
     /* get the frequency*/
     node->frequency = get_scalar_or_read_envelope(line,&(node->use_frq_env),\
                       &(node->n_frq_env_points),node->frq_env_times,node->frq_env_vals);
-
-    
-    //fprintf(stderr,"***** %f %ld ",node->frequency,depth);DEBUGPRINT
-    //fprintf(stderr,"///// %s %ld ",line,depth);DEBUGPRINT
 
     
     /*get the frequency modulator*/
@@ -386,17 +379,12 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         exit( EXIT_FAILURE );
     }
         
-    //fprintf(stderr,"}}}}}}}---- %ld %s  ",*nlines,line);DEBUGPRINT    
     /*get the amplitude modulator for channel 1)*/                     
     a_node->a_mod=setup_modulator(line,depth,nlines,format);
-    //fprintf(stderr,"}}}}}}}---- %ld %s ",*nlines,line);DEBUGPRINT    
-
 
     /*now loop over the other channels*/
     while( a_node->amp_next != NULL ){
-        
-        //fprintf(stderr,"(*&*&^*&+-+-+-+-+-===");DEBUGPRINT
-        
+                
         /*get amplitude value*/
         a_node = a_node->amp_next ;
         a_node->amplitude = get_scalar_or_read_envelope(line,&(a_node->use_amp_env),\
@@ -408,8 +396,7 @@ int parse_modulator( struct wave_node *node, char *line, unsigned long depth, lo
         if( depth == 0 && ( a_node->amplitude > 1 || a_node->amplitude < 0 ) ){
             fprintf( stderr,"amplitude at top level must be <1 and >0\n" );
             exit( EXIT_FAILURE );
-        }
-            
+        }            
     }
 
     return( 0 );
@@ -501,7 +488,6 @@ float  *env_vals;
         exit(EXIT_FAILURE);
     } 
     
-    //fprintf(stderr,"+++++ %f ",scalar); DEBUGPRINT
     return(scalar);
 }
 
@@ -528,30 +514,6 @@ PCM_fmt_chnk *format;
     char    tmp2[ MAX_LINE_LEN + 20 ];
     char    modulator[ MAX_LINE_LEN ];
     struct wave_node *node;
-
-    /*The next line guards against an error where
-    some of the older information is picked
-    up - not 100% why this happens (which is 
-    far from ideal!) but this is a robust
-    work around.
-    
-    UPDATE 20/02/26: The error occurs because, if 
-    the strong in line is blank, then 
-    get_first_string_element() does nothing to tmp.
-    As a consequence, if there is any garbage in 
-    tmp it can, potentially, get read as a
-    modulator.
-    
-    Possible better work around is to initialise
-    the string in the following way:
-    
-    memset(tmp, '\0', sizeof(tmp));
-    
-    ***OR*** (possibly better:)
-
-    if(get_first_string_element(line, tmp)==0) return NULL ;
-    */
-    if( is_string_blank( line ) ) return NULL;
 
     get_first_string_element( line, tmp ) ;
         
@@ -591,7 +553,6 @@ PCM_fmt_chnk *format;
     sprintf( tmp2, "%s %s",tmp, line );
     strcpy( line, tmp2 );
     
-    //fprintf(stderr,"~~~~~~~~  ");DEBUGPRINT
     return NULL;
 
 }

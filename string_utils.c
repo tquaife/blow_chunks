@@ -496,6 +496,9 @@ char    *element;
 
     int    i=0, j=0;
 
+    /* null terminate the token */
+    *element = '\0' ;
+
     /* Check that we are not already */
     /* at the end of the line        */
     if( *line == '\0' ) return( 0 );
@@ -521,7 +524,7 @@ char    *element;
     /*put a NULL terminator in at j - (*) */    
     element[ j ] = '\0' ;
     
-    /* Copy remainder of line into the beggining */
+    /* Copy remainder of line into the beginning */
     /* of itself */
     for( j=0; ( *(line+j)=*(line+i) ) != '\0' ; ++j, ++i );
         
